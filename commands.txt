@@ -1,0 +1,17 @@
+GET /_cluster/health
+GET /_cluster/health?level=indices&pretty
+
+GET /_cat/nodes?v&h=name,ip,node.role,master,heap.percent,heap.current,heap.max,ram.percent,cpu,load_1m,load_5m,load_15m,disk.used_percent,version&s=name
+
+GET /_cat/allocation?v&s=node
+GET /_cluster/allocation/explain
+GET /_cat/nodes?v&h=name,node.role,heap.max,shards
+GET /_cat/allocation?v&h=node,shards,disk.indices
+  
+GET /_cat/shards?v&h=index,shard,prirep,state,docs,store,node&bytes=gb&s=store:desc
+
+GET /_cat/indices?v&h=index,pri,rep,docs.count,store.size&s=store.size:desc&bytes=gb
+
+GET /_cat/indices?v&h=health,status,index,pri,rep,docs.count,docs.deleted,store.size,pri.store.size,creation.date.string&s=store.size:desc&bytes=gb
+
+GET /*/_ilm/explain?only_errors=true&filter_path=indices.*.step,indices.*.step_info,indices.*.failed_step
