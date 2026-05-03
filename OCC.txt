@@ -1,0 +1,362 @@
+# 1: GET /_cluster/health 200 OK
+{
+  "cluster_name": "c9cd36f5cf224badafbe9344ecb2b974",
+  "status": "green",
+  "timed_out": false,
+  "number_of_nodes": 10,
+  "number_of_data_nodes": 4,
+  "active_primary_shards": 114,
+  "active_shards": 233,
+  "relocating_shards": 0,
+  "initializing_shards": 0,
+  "unassigned_shards": 0,
+  "unassigned_primary_shards": 0,
+  "delayed_unassigned_shards": 0,
+  "number_of_pending_tasks": 0,
+  "number_of_in_flight_fetch": 0,
+  "task_max_waiting_in_queue_millis": 0,
+  "active_shards_percent_as_number": 100
+}
+# 2: GET /_cat/nodes?v&h=name,ip,node.role,master,heap.percent,heap.current,heap.max,ram.percent,cpu,load_1m,load_5m,load_15m,disk.used_percent,version&s=name 200 OK
+name                ip            node.role master heap.percent heap.current heap.max ram.percent cpu load_1m load_5m load_15m disk.used_percent version
+instance-0000000003 10.160.49.197 mr        -                43      782.9mb    1.7gb          66   0    1.71    1.78     1.84              0.20 8.19.14
+instance-0000000004 10.160.51.171 mr        *                13      242.8mb    1.7gb          70   0    0.59    0.83     0.76              0.25 8.19.14
+instance-0000000005 10.160.52.192 mr        -                61          1gb    1.7gb          63   0    6.56    7.10     6.90              0.20 8.19.14
+instance-0000000006 10.160.53.192 hrst      -                 8        1.2gb   14.7gb          56   0    0.97    0.91     0.66              0.07 8.19.14
+instance-0000000007 10.160.49.163 hrst      -                35        5.2gb   14.7gb          56   0    0.57    0.56     0.57              0.07 8.19.14
+instance-0000000008 10.160.50.224 hrst      -                54        8.1gb   14.7gb          55   0    1.54    1.24     1.03              0.04 8.19.14
+instance-0000000009 10.160.48.153 f         -                13      986.5mb    7.2gb          54   0    0.88    1.43     1.53             91.13 8.19.14
+instance-0000000010 10.160.52.252 ir        -                47        1.7gb    3.7gb          60   0    0.09    0.26     0.52              0.55 8.19.14
+instance-0000000011 10.160.49.86  ir        -                54          2gb    3.7gb          60   1    0.81    1.06     0.90              0.57 8.19.14
+instance-0000000012 10.160.51.240 ir        -                57        2.1gb    3.7gb          58   0    0.41    0.54     0.65              0.44 8.19.14
+
+# 3: GET /_cat/allocation?v&s=node 200 OK
+shards shards.undesired  write_load.forecast disk.indices.forecast disk.indices disk.used disk.avail disk.total disk.percent host          ip            node                node.role
+    77                0 3.183396927652601E-6               265.3mb      265.4mb     567mb    809.4gb      810gb            0 10.160.53.192 10.160.53.192 instance-0000000006 hrst
+    78                0 3.843151652917587E-6               262.9mb      262.8mb   546.3mb    809.4gb      810gb            0 10.160.49.163 10.160.49.163 instance-0000000007 hrst
+    78                0 6.597547252649857E-7                 4.5mb        4.5mb   359.2mb    809.6gb      810gb            0 10.160.50.224 10.160.50.224 instance-0000000008 hrst
+     0                0                  0.0                    0b           0b       1tb     99.7gb        1tb           91 10.160.48.153 10.160.48.153 instance-0000000009 f
+
+# 4: GET /_cluster/allocation/explain 400 Bad Request
+{
+  "error": {
+    "root_cause": [
+      {
+        "type": "illegal_argument_exception",
+        "reason": "No shard was specified in the request which means the response should explain a randomly-chosen unassigned shard, but there are no unassigned shards in this cluster. To explain the allocation of an assigned shard you must specify the target shard in the request. See https://www.elastic.co/guide/en/elasticsearch/reference/8.19/cluster-allocation-explain.html for more information."
+      }
+    ],
+    "type": "illegal_argument_exception",
+    "reason": "No shard was specified in the request which means the response should explain a randomly-chosen unassigned shard, but there are no unassigned shards in this cluster. To explain the allocation of an assigned shard you must specify the target shard in the request. See https://www.elastic.co/guide/en/elasticsearch/reference/8.19/cluster-allocation-explain.html for more information."
+  },
+  "status": 400
+}
+# 5: GET /_cat/allocation?v&h=node,shards,disk.indices 200 OK
+node                shards disk.indices
+instance-0000000009      0           0b
+instance-0000000007     78      262.8mb
+instance-0000000008     78        4.5mb
+instance-0000000006     77      265.4mb
+
+# 6: GET /_cat/shards?v&h=index,shard,prirep,state,docs,store,node&bytes=gb&s=store:desc 200 OK
+index                                                                   shard prirep state      docs store node
+cdm_cpe_dictionary                                                      0     r      STARTED 1488000     0 instance-0000000006
+cdm_cpe_dictionary                                                      0     p      STARTED 1488000     0 instance-0000000007
+.kibana_analytics_8.19.12_001                                           0     r      STARTED    4321     0 instance-0000000006
+.kibana_analytics_8.19.12_001                                           0     p      STARTED    4321     0 instance-0000000007
+.tasks                                                                  0     r      STARTED   29052     0 instance-0000000006
+.tasks                                                                  0     p      STARTED   29052     0 instance-0000000007
+data_dictionary                                                         0     p      STARTED    3858     0 instance-0000000008
+data_dictionary                                                         0     r      STARTED    3858     0 instance-0000000006
+.security-7                                                             0     r      STARTED     460     0 instance-0000000006
+.security-7                                                             0     p      STARTED     460     0 instance-0000000008
+.ds-.slm-history-7-2026.04.21-000007                                    0     p      STARTED     676     0 instance-0000000008
+.ds-.slm-history-7-2026.04.21-000007                                    0     r      STARTED     676     0 instance-0000000006
+.ds-.slm-history-7-2026.03.24-000003                                    0     p      STARTED     633     0 instance-0000000007
+.ds-.slm-history-7-2026.03.24-000003                                    0     r      STARTED     633     0 instance-0000000006
+.ds-.slm-history-7-2026.04.07-000005                                    0     p      STARTED     673     0 instance-0000000008
+.ds-.slm-history-7-2026.04.07-000005                                    0     r      STARTED     673     0 instance-0000000006
+.ds-.slm-history-7-2026.04.14-000006                                    0     r      STARTED     672     0 instance-0000000006
+.ds-.slm-history-7-2026.04.14-000006                                    0     p      STARTED     672     0 instance-0000000007
+.ds-.slm-history-7-2026.03.31-000004                                    0     r      STARTED     671     0 instance-0000000006
+.ds-.slm-history-7-2026.03.31-000004                                    0     p      STARTED     671     0 instance-0000000007
+.ds-.slm-history-7-2026.03.10-000001                                    0     r      STARTED     572     0 instance-0000000006
+.ds-.slm-history-7-2026.03.10-000001                                    0     p      STARTED     572     0 instance-0000000007
+.ds-.slm-history-7-2026.03.17-000002                                    0     r      STARTED     670     0 instance-0000000008
+.ds-.slm-history-7-2026.03.17-000002                                    0     p      STARTED     670     0 instance-0000000007
+.kibana_ingest_8.19.12_001                                              0     p      STARTED     144     0 instance-0000000008
+.kibana_ingest_8.19.12_001                                              0     r      STARTED     144     0 instance-0000000007
+.ds-.slm-history-7-2026.04.28-000008                                    0     p      STARTED     506     0 instance-0000000008
+.ds-.slm-history-7-2026.04.28-000008                                    0     r      STARTED     506     0 instance-0000000007
+.kibana_usage_counters_8.19.12_001                                      0     r      STARTED     468     0 instance-0000000006
+.kibana_task_manager_8.19.12_001                                        0     p      STARTED      47     0 instance-0000000008
+.kibana_task_manager_8.19.12_001                                        0     r      STARTED      47     0 instance-0000000006
+.kibana_usage_counters_8.19.12_001                                      0     p      STARTED     468     0 instance-0000000008
+.cdm_config_history                                                     0     p      STARTED     248     0 instance-0000000008
+.kibana_8.19.12_001                                                     0     r      STARTED     210     0 instance-0000000006
+.cdm_config_history                                                     0     r      STARTED     248     0 instance-0000000006
+.kibana_8.19.12_001                                                     0     p      STARTED     210     0 instance-0000000007
+.security-tokens-7                                                      0     r      STARTED      24     0 instance-0000000007
+.security-tokens-7                                                      0     p      STARTED      24     0 instance-0000000008
+.transform-notifications-000002                                         0     p      STARTED     311     0 instance-0000000008
+.transform-notifications-000002                                         0     r      STARTED     311     0 instance-0000000007
+.transform-internal-007                                                 0     r      STARTED     132     0 instance-0000000006
+.security-profile-8                                                     0     p      STARTED      18     0 instance-0000000008
+.security-profile-8                                                     0     r      STARTED      18     0 instance-0000000006
+.ds-.logs-deprecation.elasticsearch-default-2026.04.09-000002           0     r      STARTED      11     0 instance-0000000006
+.ds-.logs-deprecation.elasticsearch-default-2026.04.09-000002           0     p      STARTED      11     0 instance-0000000007
+.transform-internal-007                                                 0     p      STARTED     132     0 instance-0000000007
+.ds-ilm-history-7-2026.03.10-000001                                     0     p      STARTED     102     0 instance-0000000008
+.ds-ilm-history-7-2026.03.10-000001                                     0     r      STARTED     102     0 instance-0000000006
+.kibana_security_session_1                                              0     p      STARTED       7     0 instance-0000000008
+.kibana_security_session_1                                              0     r      STARTED       7     0 instance-0000000006
+.ds-.logs-deprecation.elasticsearch-default-2026.03.10-000001           0     r      STARTED      46     0 instance-0000000006
+.ds-.logs-deprecation.elasticsearch-default-2026.03.10-000001           0     p      STARTED      46     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.01-000003                              0     p      STARTED       9     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.01-000003                              0     r      STARTED       9     0 instance-0000000006
+.kibana_security_solution_8.19.12_001                                   0     r      STARTED       3     0 instance-0000000006
+.kibana_security_solution_8.19.12_001                                   0     p      STARTED       3     0 instance-0000000007
+.ds-ilm-history-7-2026.03.17-000002                                     0     p      STARTED      42     0 instance-0000000008
+.ds-ilm-history-7-2026.03.17-000002                                     0     r      STARTED      42     0 instance-0000000006
+.ds-.kibana-event-log-ds-2026.03.10-000001                              0     r      STARTED       5     0 instance-0000000006
+.ds-.kibana-event-log-ds-2026.03.10-000001                              0     p      STARTED       5     0 instance-0000000007
+.cdm_config                                                             0     r      STARTED      10     0 instance-0000000008
+.cdm_config                                                             0     p      STARTED      10     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.08-000004                              0     p      STARTED       3     0 instance-0000000008
+.ds-.kibana-event-log-ds-2026.04.08-000004                              0     r      STARTED       3     0 instance-0000000006
+.ds-.kibana-event-log-ds-2026.03.17-000002                              0     r      STARTED       3     0 instance-0000000006
+.ds-.kibana-event-log-ds-2026.03.17-000002                              0     p      STARTED       3     0 instance-0000000007
+.ds-ilm-history-7-2026.03.24-000003                                     0     r      STARTED       7     0 instance-0000000006
+.ds-ilm-history-7-2026.03.24-000003                                     0     p      STARTED       7     0 instance-0000000007
+.async-search                                                           0     r      STARTED       1     0 instance-0000000008
+.async-search                                                           0     p      STARTED       1     0 instance-0000000007
+.kibana_alerting_cases_8.19.12_001                                      0     p      STARTED       1     0 instance-0000000008
+.kibana_alerting_cases_8.19.12_001                                      0     r      STARTED       1     0 instance-0000000007
+.inference                                                              0     r      STARTED       1     0 instance-0000000006
+.inference                                                              0     p      STARTED       1     0 instance-0000000007
+.enrich-cdm_config_t0-1773777681526                                     0     p      STARTED      10     0 instance-0000000008
+.enrich-cdm_config_t0-1773777681526                                     0     r      STARTED      10     0 instance-0000000006
+.enrich-cdm_config_t0-1773777681526                                     0     r      STARTED      10     0 instance-0000000007
+.secrets-inference                                                      0     r      STARTED       1     0 instance-0000000006
+.secrets-inference                                                      0     p      STARTED       1     0 instance-0000000007
+.enrich-cdm_software_dictionary_eol-1773341163823                       0     p      STARTED       0     0 instance-0000000008
+.enrich-cdm_csm_stig-1773341159675                                      0     p      STARTED       0     0 instance-0000000008
+.enrich-cdm_software_dictionary_eol-1773341163823                       0     r      STARTED       0     0 instance-0000000006
+.enrich-cdm_software_dictionary_eol-1773341163823                       0     r      STARTED       0     0 instance-0000000007
+.enrich-cdm_csm_stig-1773341159675                                      0     r      STARTED       0     0 instance-0000000006
+.enrich-cdm_csm_stig-1773341159675                                      0     r      STARTED       0     0 instance-0000000007
+.kibana_locks-000001                                                    0     r      STARTED       0     0 instance-0000000008
+.kibana_locks-000001                                                    0     p      STARTED       0     0 instance-0000000007
+.apm-agent-configuration                                                0     p      STARTED       0     0 instance-0000000008
+cdm_directive_dictionary                                                0     p      STARTED       0     0 instance-0000000008
+cdm_scuba_m365_conditional_access_policy                                0     p      STARTED       0     0 instance-0000000008
+cdm_scan_trending-6-0000001                                             0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-observability.uptime.alerts-default-000001             0     r      STARTED       0     0 instance-0000000008
+.kibana-siem-rule-migrations-prebuiltrules                              0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-streams.alerts-default-000001                          0     p      STARTED       0     0 instance-0000000008
+.ds-cdm_cyhy_vuln_trending-2026.03.12-000001                            0     p      STARTED       0     0 instance-0000000008
+.kibana-siem-rule-migrations-integrations                               0     p      STARTED       0     0 instance-0000000008
+cdm_scuba_gws_common_control_alert_rule                                 0     p      STARTED       0     0 instance-0000000008
+cdm_cyhy_vuln                                                           0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-observability.apm.alerts-default-000001                0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-stack.alerts-default-000001                            0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-observability.logs.alerts-default-000001               0     r      STARTED       0     0 instance-0000000006
+cdm_kev_dictionary                                                      0     p      STARTED       0     0 instance-0000000008
+cdm_swam_trending-6-000002                                              0     p      STARTED       0     0 instance-0000000008
+cdm_vuln_remediated                                                     0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-observability.metrics.alerts-default-000001            0     p      STARTED       0     0 instance-0000000008
+.ds-cdm_cyhy_domain_ssl_trending-2026.03.12-000001                      0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-ml.anomaly-detection-health.alerts-default-000001      0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-ml.anomaly-detection.alerts-default-000001             0     r      STARTED       0     0 instance-0000000008
+cdm_cyhy_host_scans                                                     0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-observability.slo.alerts-default-000001                0     r      STARTED       0     0 instance-0000000008
+.ds-cdm_asm_nmi_trending-2026.03.12-000001                              0     p      STARTED       0     0 instance-0000000008
+.slo-observability.sli-v3.5                                             0     p      STARTED       0     0 instance-0000000008
+cdm_cyhy_domain                                                         0     p      STARTED       0     0 instance-0000000008
+.ds-cdm_scuba_m365_result_trending-2026.03.12-000001                    0     r      STARTED       0     0 instance-0000000008
+cdm_scuba_m365_license                                                  0     p      STARTED       0     0 instance-0000000008
+.apm-agent-configuration                                                0     r      STARTED       0     0 instance-0000000006
+.ds-ilm-history-7-2026.04.09-000004                                     0     r      STARTED       0     0 instance-0000000006
+.ds-ilm-history-7-2026.04.09-000004                                     0     p      STARTED       0     0 instance-0000000007
+cdm_asm_nmi                                                             0     p      STARTED       0     0 instance-0000000008
+cdm_hwam                                                                0     p      STARTED       0     0 instance-0000000008
+cdm_hwam                                                                0     r      STARTED       0     0 instance-0000000007
+cdm_scuba_m365_result                                                   0     p      STARTED       0     0 instance-0000000008
+cdm_scuba_m365_result                                                   0     r      STARTED       0     0 instance-0000000006
+cdm_scan_trending-6-0000001                                             0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-observability.uptime.alerts-default-000001             0     p      STARTED       0     0 instance-0000000007
+cdm_software_dictionary                                                 0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-streams.alerts-default-000001                          0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-observability.threshold.alerts-default-000001          0     p      STARTED       0     0 instance-0000000008
+cdm_benchmark_vuln                                                      0     p      STARTED       0     0 instance-0000000008
+.slo-observability.summary-v3.5                                         0     p      STARTED       0     0 instance-0000000008
+.slo-observability.summary-v3.5                                         0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_gws_common_control_alert_rule                                 0     r      STARTED       0     0 instance-0000000006
+cdm_cyhy_vuln                                                           0     r      STARTED       0     0 instance-0000000007
+.internal.alerts-observability.apm.alerts-default-000001                0     p      STARTED       0     0 instance-0000000007
+.internal.alerts-stack.alerts-default-000001                            0     p      STARTED       0     0 instance-0000000007
+.ds-cdm_asm_nmi_trending-2026.03.17-000002                              0     p      STARTED       0     0 instance-0000000007
+.internal.alerts-observability.logs.alerts-default-000001               0     p      STARTED       0     0 instance-0000000007
+cdm_vuln_trending-6-000002                                              0     r      STARTED       0     0 instance-0000000006
+cdm_vuln_trending-6-000002                                              0     p      STARTED       0     0 instance-0000000007
+cdm_swam_trending-6-000002                                              0     r      STARTED       0     0 instance-0000000006
+cdm_vdp                                                                 0     r      STARTED       0     0 instance-0000000008
+cdm_vdp                                                                 0     p      STARTED       0     0 instance-0000000007
+.apm-source-map                                                         0     r      STARTED       0     0 instance-0000000006
+.apm-source-map                                                         0     p      STARTED       0     0 instance-0000000007
+.enrich-cdm_vuln_cve-1775145105694                                      0     p      STARTED       0     0 instance-0000000008
+.ds-cdm_cyhy_host_scans_trending-2026.03.12-000001                      0     p      STARTED       0     0 instance-0000000007
+cdm_cve_dictionary                                                      0     p      STARTED       0     0 instance-0000000007
+cdm_vuln                                                                0     p      STARTED       0     0 instance-0000000008
+cdm_vuln                                                                0     r      STARTED       0     0 instance-0000000006
+cdm_device_scan_trending-6-000002                                       0     p      STARTED       0     0 instance-0000000008
+cdm_scuba_m365_license_latest                                           0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_m365_license_latest                                           0     p      STARTED       0     0 instance-0000000007
+cdm_csm_trending-6-000002                                               0     p      STARTED       0     0 instance-0000000007
+.internal.alerts-security.alerts-default-000001                         0     p      STARTED       0     0 instance-0000000007
+cdm_hwam_trending-6-000002                                              0     r      STARTED       0     0 instance-0000000008
+cdm_hwam_trending-6-000002                                              0     p      STARTED       0     0 instance-0000000007
+.ds-cdm_scuba_gws_common_control_alert_rule_trending-2026.03.12-000001  0     r      STARTED       0     0 instance-0000000008
+.ds-cdm_scuba_gws_common_control_alert_rule_trending-2026.03.12-000001  0     p      STARTED       0     0 instance-0000000007
+cdm_threat                                                              0     r      STARTED       0     0 instance-0000000006
+cdm_threat                                                              0     p      STARTED       0     0 instance-0000000007
+.ds-cdm_scuba_m365_license_trending-2026.03.12-000001                   0     p      STARTED       0     0 instance-0000000008
+cdm_cyhy_domain_ssl                                                     0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-ml.anomaly-detection.alerts-default-000001             0     p      STARTED       0     0 instance-0000000007
+.slo-observability.summary-v3.5.temp                                    0     r      STARTED       0     0 instance-0000000006
+.slo-observability.summary-v3.5.temp                                    0     p      STARTED       0     0 instance-0000000007
+.internal.alerts-transform.health.alerts-default-000001                 0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-transform.health.alerts-default-000001                 0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_gws_result                                                    0     p      STARTED       0     0 instance-0000000008
+cdm_scuba_gws_result                                                    0     r      STARTED       0     0 instance-0000000007
+cdm_scuba_m365_result_latest                                            0     r      STARTED       0     0 instance-0000000008
+cdm_scuba_m365_result_latest                                            0     p      STARTED       0     0 instance-0000000007
+cdm_cyhy_host_scans                                                     0     r      STARTED       0     0 instance-0000000006
+.ds-cdm_cyhy_domain_trending-2026.03.12-000001                          0     p      STARTED       0     0 instance-0000000007
+.internal.alerts-observability.slo.alerts-default-000001                0     p      STARTED       0     0 instance-0000000007
+.ds-cdm_scuba_gws_result_trending-2026.03.12-000001                     0     p      STARTED       0     0 instance-0000000007
+.apm-custom-link                                                        0     p      STARTED       0     0 instance-0000000008
+cdm_scuba_m365_conditional_access_policy_latest                         0     p      STARTED       0     0 instance-0000000008
+.ds-.kibana-event-log-ds-2026.04.15-000005                              0     p      STARTED       0     0 instance-0000000007
+.enrich-cdm_software_directive-1775145109330                            0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-dataset.quality.alerts-default-000001                  0     p      STARTED       0     0 instance-0000000007
+.ds-cdm_vdp_trending-2026.03.12-000001                                  0     p      STARTED       0     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.03.12-000001 0     p      STARTED       0     0 instance-0000000007
+cdm_system_boundary_fisma_1163_rollup                                   0     p      STARTED       0     0 instance-0000000008
+cdm_system_boundary_fisma_1163_rollup                                   0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-default.alerts-default-000001                          0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-default.alerts-default-000001                          0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_gws_common_control_alert_rule_latest                          0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-security.attack.discovery.alerts-default-000001        0     p      STARTED       0     0 instance-0000000008
+.internal.alerts-security.attack.discovery.alerts-default-000001        0     r      STARTED       0     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2026.03.12-000001                    0     p      STARTED       0     0 instance-0000000007
+cdm_scuba_gws_result_latest                                             0     r      STARTED       0     0 instance-0000000008
+cdm_scuba_gws_result_latest                                             0     p      STARTED       0     0 instance-0000000007
+cdm_system_boundary_trending-6-0000001                                  0     p      STARTED       0     0 instance-0000000008
+cdm_system_boundary_trending-6-0000001                                  0     r      STARTED       0     0 instance-0000000006
+cdm_asm_nmi                                                             0     r      STARTED       0     0 instance-0000000007
+cdm_directive_dictionary                                                0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_m365_conditional_access_policy                                0     r      STARTED       0     0 instance-0000000006
+cdm_software_dictionary                                                 0     r      STARTED       0     0 instance-0000000007
+.kibana-siem-rule-migrations-prebuiltrules                              0     r      STARTED       0     0 instance-0000000007
+.ds-cdm_cyhy_vuln_trending-2026.03.12-000001                            0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-observability.threshold.alerts-default-000001          0     r      STARTED       0     0 instance-0000000007
+cdm_benchmark_vuln                                                      0     r      STARTED       0     0 instance-0000000006
+.kibana-siem-rule-migrations-integrations                               0     r      STARTED       0     0 instance-0000000007
+.ds-cdm_asm_nmi_trending-2026.03.17-000002                              0     r      STARTED       0     0 instance-0000000006
+cdm_kev_dictionary                                                      0     r      STARTED       0     0 instance-0000000006
+cdm_vuln_remediated                                                     0     r      STARTED       0     0 instance-0000000007
+.enrich-cdm_vuln_cve-1775145105694                                      0     r      STARTED       0     0 instance-0000000006
+.enrich-cdm_vuln_cve-1775145105694                                      0     r      STARTED       0     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2026.03.12-000001                      0     r      STARTED       0     0 instance-0000000006
+cdm_cve_dictionary                                                      0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-observability.metrics.alerts-default-000001            0     r      STARTED       0     0 instance-0000000007
+cdm_device_scan_trending-6-000002                                       0     r      STARTED       0     0 instance-0000000007
+cdm_csm_trending-6-000002                                               0     r      STARTED       0     0 instance-0000000006
+.ds-cdm_cyhy_domain_ssl_trending-2026.03.12-000001                      0     r      STARTED       0     0 instance-0000000007
+.internal.alerts-security.alerts-default-000001                         0     r      STARTED       0     0 instance-0000000006
+.internal.alerts-ml.anomaly-detection-health.alerts-default-000001      0     r      STARTED       0     0 instance-0000000006
+.ds-cdm_scuba_m365_license_trending-2026.03.12-000001                   0     r      STARTED       0     0 instance-0000000007
+cdm_cyhy_domain_ssl                                                     0     r      STARTED       0     0 instance-0000000007
+.ds-cdm_cyhy_domain_trending-2026.03.12-000001                          0     r      STARTED       0     0 instance-0000000008
+.ds-cdm_scuba_gws_result_trending-2026.03.12-000001                     0     r      STARTED       0     0 instance-0000000006
+.ds-cdm_asm_nmi_trending-2026.03.12-000001                              0     r      STARTED       0     0 instance-0000000006
+.apm-custom-link                                                        0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_m365_conditional_access_policy_latest                         0     r      STARTED       0     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.15-000005                              0     r      STARTED       0     0 instance-0000000006
+.slo-observability.sli-v3.5                                             0     r      STARTED       0     0 instance-0000000006
+.enrich-cdm_software_directive-1775145109330                            0     r      STARTED       0     0 instance-0000000006
+.enrich-cdm_software_directive-1775145109330                            0     r      STARTED       0     0 instance-0000000007
+.internal.alerts-dataset.quality.alerts-default-000001                  0     r      STARTED       0     0 instance-0000000006
+.ds-cdm_vdp_trending-2026.03.12-000001                                  0     r      STARTED       0     0 instance-0000000008
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.03.12-000001 0     r      STARTED       0     0 instance-0000000006
+cdm_cyhy_domain                                                         0     r      STARTED       0     0 instance-0000000006
+cdm_scuba_gws_common_control_alert_rule_latest                          0     r      STARTED       0     0 instance-0000000007
+cdm_scuba_m365_license                                                  0     r      STARTED       0     0 instance-0000000007
+
+# 7: GET /_cat/indices?v&h=health,status,index,pri,rep,docs.count,docs.deleted,store.size,pri.store.size,creation.date.string&s=store.size:desc&bytes=gb 200 OK
+health status index                                                                   pri rep docs.count docs.deleted store.size pri.store.size creation.date.string
+green  open   cdm_cpe_dictionary                                                        1   1    1488000            0          0              0 2026-03-17T19:54:49.360Z
+green  open   data_dictionary                                                           1   1       3858            0          0              0 2026-03-17T19:55:11.822Z
+green  open   .cdm_config_history                                                       1   1        248            0          0              0 2026-03-12T18:46:48.764Z
+green  open   .cdm_config                                                               1   1         10            2          0              0 2026-03-12T18:46:04.904Z
+green  open   .internal.alerts-ml.anomaly-detection.alerts-default-000001               1   1          0            0          0              0 2026-03-10T15:29:12.955Z
+green  open   .internal.alerts-observability.slo.alerts-default-000001                  1   1          0            0          0              0 2026-03-10T15:29:13.176Z
+green  open   cdm_cyhy_vuln                                                             1   1          0            0          0              0 2026-03-12T18:46:50.628Z
+green  open   .internal.alerts-observability.logs.alerts-default-000001                 1   1          0            0          0              0 2026-03-10T15:29:12.916Z
+green  open   cdm_cyhy_host_scans                                                       1   1          0            0          0              0 2026-03-12T18:46:50.145Z
+green  open   cdm_scan_trending-6-0000001                                               1   1          0            0          0              0 2026-03-12T20:49:30.346Z
+green  open   .internal.alerts-observability.uptime.alerts-default-000001               1   1          0            0          0              0 2026-03-10T15:29:13.284Z
+green  open   .internal.alerts-observability.apm.alerts-default-000001                  1   1          0            0          0              0 2026-03-10T15:29:13.055Z
+green  open   cdm_scuba_gws_common_control_alert_rule                                   1   1          0            0          0              0 2026-03-12T18:46:55.005Z
+green  open   .ds-cdm_scuba_m365_result_trending-2026.03.12-000001                      1   1          0            0          0              0 2026-03-12T18:45:52.042Z
+green  open   .internal.alerts-stack.alerts-default-000001                              1   1          0            0          0              0 2026-03-10T15:29:13.346Z
+green  open   .internal.alerts-streams.alerts-default-000001                            1   1          0            0          0              0 2026-03-10T15:29:13.085Z
+green  open   cdm_swam_trending-6-000002                                                1   1          0            0          0              0 2026-03-17T20:01:36.289Z
+green  open   cdm_scuba_gws_result                                                      1   1          0            0          0              0 2026-03-12T18:46:54.031Z
+green  open   .internal.alerts-default.alerts-default-000001                            1   1          0            0          0              0 2026-03-10T15:29:12.808Z
+green  open   .ds-cdm_cyhy_domain_ssl_trending-2026.03.12-000001                        1   1          0            0          0              0 2026-03-12T18:45:50.189Z
+green  open   cdm_scuba_m365_result_latest                                              1   1          0            0          0              0 2026-03-12T18:46:52.571Z
+green  open   cdm_vdp                                                                   1   1          0            0          0              0 2026-03-12T18:46:57.079Z
+green  open   cdm_cyhy_domain                                                           1   1          0            0          0              0 2026-03-12T18:46:49.158Z
+green  open   .internal.alerts-transform.health.alerts-default-000001                   1   1          0            0          0              0 2026-03-10T15:29:13.021Z
+green  open   .ds-cdm_asm_nmi_trending-2026.03.12-000001                                1   1          0            0          0              0 2026-03-12T18:45:55.542Z
+green  open   .internal.alerts-ml.anomaly-detection-health.alerts-default-000001        1   1          0            0          0              0 2026-03-10T15:29:13.430Z
+green  open   cdm_vuln_trending-6-000002                                                1   1          0            0          0              0 2026-03-17T20:01:36.918Z
+green  open   cdm_scuba_m365_license                                                    1   1          0            0          0              0 2026-03-12T18:46:51.609Z
+green  open   .ds-cdm_cyhy_vuln_trending-2026.03.12-000001                              1   1          0            0          0              0 2026-03-12T18:45:49.408Z
+green  open   cdm_hwam_trending-6-000002                                                1   1          0            0          0              0 2026-03-17T20:01:35.656Z
+green  open   cdm_kev_dictionary                                                        1   1          0            0          0              0 2026-03-17T19:54:48.422Z
+green  open   cdm_vuln_remediated                                                       1   1          0            0          0              0 2026-03-17T20:01:43.124Z
+green  open   .ds-cdm_scuba_gws_common_control_alert_rule_trending-2026.03.12-000001    1   1          0            0          0              0 2026-03-12T18:45:55.150Z
+green  open   cdm_system_boundary_fisma_1163_rollup                                     1   1          0            0          0              0 2026-03-12T18:46:55.976Z
+green  open   cdm_scuba_gws_result_latest                                               1   1          0            0          0              0 2026-03-12T18:46:54.524Z
+green  open   .internal.alerts-security.attack.discovery.alerts-default-000001          1   1          0            0          0              0 2026-03-10T15:29:13.389Z
+green  open   cdm_directive_dictionary                                                  1   1          0            0          0              0 2026-03-17T19:54:50.315Z
+green  open   .internal.alerts-observability.metrics.alerts-default-000001              1   1          0            0          0              0 2026-03-10T15:29:12.834Z
+green  open   cdm_vuln                                                                  1   1          0            0          0              0 2026-03-12T18:46:47.694Z
+green  open   cdm_scuba_m365_license_latest                                             1   1          0            0          0              0 2026-03-12T18:46:53.056Z
+green  open   cdm_hwam                                                                  1   1          0            0          0              0 2026-03-12T18:46:56.149Z
+green  open   cdm_threat                                                                1   1          0            0          0              0 2026-03-17T19:54:50.786Z
+green  open   cdm_system_boundary_trending-6-0000001                                    1   1          0            0          0              0 2026-03-12T20:49:30.503Z
+green  open   cdm_scuba_m365_result                                                     1   1          0            0          0              0 2026-03-12T18:46:52.090Z
+green  open   cdm_scuba_m365_conditional_access_policy                                  1   1          0            0          0              0 2026-03-12T18:46:51.120Z
+green  open   cdm_scuba_gws_common_control_alert_rule_latest                            1   1          0            0          0              0 2026-03-12T18:46:55.488Z
+green  open   cdm_benchmark_vuln                                                        1   1          0            0          0              0 2026-03-17T19:55:25.058Z
+green  open   .ds-cdm_scuba_gws_result_trending-2026.03.12-000001                       1   1          0            0          0              0 2026-03-12T18:45:54.312Z
+green  open   .ds-cdm_cyhy_domain_trending-2026.03.12-000001                            1   1          0            0          0              0 2026-03-12T18:45:49.805Z
+green  open   .ds-cdm_scuba_m365_license_trending-2026.03.12-000001                     1   1          0            0          0              0 2026-03-12T18:45:52.440Z
+green  open   .internal.alerts-observability.threshold.alerts-default-000001            1   1          0            0          0              0 2026-03-10T15:29:13.463Z
+green  open   .internal.alerts-dataset.quality.alerts-default-000001                    1   1          0            0          0              0 2026-03-10T15:29:13.503Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2026.03.12-000001   1   1          0            0          0              0 2026-03-12T18:45:52.829Z
+green  open   .ds-cdm_asm_nmi_trending-2026.03.17-000002                                1   1          0            0          0              0 2026-03-17T20:01:33.772Z
+green  open   cdm_cyhy_domain_ssl                                                       1   1          0            0          0              0 2026-03-12T18:46:49.636Z
+green  open   cdm_asm_nmi                                                               1   1          0            0          0              0 2026-03-17T20:01:39.377Z
+green  open   .ds-cdm_vdp_trending-2026.03.12-000001                                    1   1          0            0          0              0 2026-03-12T18:45:56.378Z
+green  open   cdm_scuba_m365_conditional_access_policy_latest                           1   1          0            0          0              0 2026-03-12T18:46:53.549Z
+green  open   cdm_software_dictionary                                                   1   1          0            0          0              0 2026-03-17T19:54:51.258Z
+green  open   cdm_cve_dictionary                                                        1   1          0            0          0              0 2026-03-17T19:54:49.840Z
+green  open   cdm_device_scan_trending-6-000002                                         1   1          0            0          0              0 2026-03-17T20:01:34.991Z
+green  open   .ds-cdm_cyhy_host_scans_trending-2026.03.12-000001                        1   1          0            0          0              0 2026-03-12T18:45:50.572Z
+green  open   cdm_csm_trending-6-000002                                                 1   1          0            0          0              0 2026-03-17T20:01:34.385Z
+green  open   .internal.alerts-security.alerts-default-000001                           1   1          0            0          0              0 2026-03-10T15:29:13.129Z
