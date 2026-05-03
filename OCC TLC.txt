@@ -1,0 +1,213 @@
+# 1: GET /_cluster/health 200 OK
+{
+  "cluster_name": "2b3cd0da437d4742a1046c05537ea3c9",
+  "status": "green",
+  "timed_out": false,
+  "number_of_nodes": 3,
+  "number_of_data_nodes": 2,
+  "active_primary_shards": 66,
+  "active_shards": 132,
+  "relocating_shards": 0,
+  "initializing_shards": 0,
+  "unassigned_shards": 0,
+  "unassigned_primary_shards": 0,
+  "delayed_unassigned_shards": 0,
+  "number_of_pending_tasks": 0,
+  "number_of_in_flight_fetch": 0,
+  "task_max_waiting_in_queue_millis": 0,
+  "active_shards_percent_as_number": 100
+}
+# 2: GET /_cat/nodes?v&h=name,ip,node.role,master,heap.percent,heap.current,heap.max,ram.percent,cpu,load_1m,load_5m,load_15m,disk.used_percent,version&s=name 200 OK
+name                  ip            node.role master heap.percent heap.current heap.max ram.percent cpu load_1m load_5m load_15m disk.used_percent version
+instance-0000000000   10.160.53.107 himrst    *                71        1.2gb    1.7gb          93  14    2.21    2.55     2.74             16.89 8.19.14
+instance-0000000001   10.160.48.218 himrst    -                52      950.8mb    1.7gb          98   4    0.79    0.89     0.96             16.90 8.19.14
+tiebreaker-0000000002 10.160.50.196 mv        -                76      170.6mb    224mb          87   0    5.20    5.46     5.87              1.52 8.19.14
+
+# 3: GET /_cat/allocation?v&s=node 200 OK
+shards shards.undesired  write_load.forecast disk.indices.forecast disk.indices disk.used disk.avail disk.total disk.percent host          ip            node                node.role
+    66                0 0.007789779355039433                98.6gb       53.6gb      54gb    265.9gb      320gb           16 10.160.53.107 10.160.53.107 instance-0000000000 himrst
+    66                0 0.007789779355039433                98.6gb       53.7gb      54gb    265.9gb      320gb           16 10.160.48.218 10.160.48.218 instance-0000000001 himrst
+
+# 4: GET /_cluster/allocation/explain 400 Bad Request
+{
+  "error": {
+    "root_cause": [
+      {
+        "type": "illegal_argument_exception",
+        "reason": "No shard was specified in the request which means the response should explain a randomly-chosen unassigned shard, but there are no unassigned shards in this cluster. To explain the allocation of an assigned shard you must specify the target shard in the request. See https://www.elastic.co/guide/en/elasticsearch/reference/8.19/cluster-allocation-explain.html for more information."
+      }
+    ],
+    "type": "illegal_argument_exception",
+    "reason": "No shard was specified in the request which means the response should explain a randomly-chosen unassigned shard, but there are no unassigned shards in this cluster. To explain the allocation of an assigned shard you must specify the target shard in the request. See https://www.elastic.co/guide/en/elasticsearch/reference/8.19/cluster-allocation-explain.html for more information."
+  },
+  "status": 400
+}
+# 5: GET /_cat/allocation?v&h=node,shards,disk.indices 200 OK
+node                shards disk.indices
+instance-0000000000     66       53.6gb
+instance-0000000001     66       53.7gb
+
+# 6: GET /_cat/shards?v&h=index,shard,prirep,state,docs,store,node&bytes=gb&s=store:desc 200 OK
+index                                                              shard prirep state       docs store node
+.ds-elastic-cloud-logs-8-2026.04.02-000001                         0     p      STARTED 94366782    45 instance-0000000000
+.ds-elastic-cloud-logs-8-2026.04.02-000001                         0     r      STARTED 94366782    45 instance-0000000001
+.ds-.monitoring-es-8-mb-2026.04.29-000017                          0     p      STARTED  3525619     2 instance-0000000001
+.ds-.monitoring-es-8-mb-2026.04.29-000017                          0     r      STARTED  3525619     2 instance-0000000000
+.ds-elastic-cloud-logs-8-2026.05.02-000002                         0     p      STARTED  4884582     2 instance-0000000001
+.ds-elastic-cloud-logs-8-2026.05.02-000002                         0     r      STARTED  4884644     2 instance-0000000000
+.ds-.monitoring-es-8-mb-2026.05.02-000019                          0     p      STARTED  1550148     1 instance-0000000001
+.ds-.monitoring-es-8-mb-2026.05.02-000019                          0     r      STARTED  1550148     1 instance-0000000000
+cdm_cpe_dictionary                                                 0     r      STARTED  4464000     0 instance-0000000000
+cdm_cpe_dictionary                                                 0     p      STARTED  4464000     0 instance-0000000001
+.ds-metricbeat-8.19.14-2026.04.15-000001                           0     r      STARTED  2731086     0 instance-0000000001
+.ds-metricbeat-8.19.14-2026.04.15-000001                           0     p      STARTED  2731086     0 instance-0000000000
+.ds-metricbeat-8.19.13-2026.04.02-000001                           0     r      STARTED  1678484     0 instance-0000000001
+.ds-metricbeat-8.19.13-2026.04.02-000001                           0     p      STARTED  1678484     0 instance-0000000000
+.ds-.monitoring-kibana-8-mb-2026.04.29-000017                      0     p      STARTED   389699     0 instance-0000000001
+.ds-.monitoring-kibana-8-mb-2026.04.29-000017                      0     r      STARTED   389699     0 instance-0000000000
+.ds-.monitoring-kibana-8-mb-2026.05.02-000019                      0     r      STARTED   171184     0 instance-0000000001
+.ds-.monitoring-kibana-8-mb-2026.05.02-000019                      0     p      STARTED   171184     0 instance-0000000000
+.kibana_analytics_8.19.12_001                                      0     p      STARTED       55     0 instance-0000000000
+.kibana_analytics_8.19.12_001                                      0     r      STARTED       55     0 instance-0000000001
+.security-7                                                        0     p      STARTED      384     0 instance-0000000000
+.security-7                                                        0     r      STARTED      384     0 instance-0000000001
+.kibana_ingest_8.19.12_001                                         0     p      STARTED      144     0 instance-0000000000
+.kibana_ingest_8.19.12_001                                         0     r      STARTED      144     0 instance-0000000001
+.ds-.logs-deprecation.elasticsearch-default-2026.04.01-000001      0     p      STARTED       18     0 instance-0000000000
+.ds-.logs-deprecation.elasticsearch-default-2026.04.01-000001      0     r      STARTED       18     0 instance-0000000001
+.kibana_task_manager_8.19.12_001                                   0     p      STARTED       46     0 instance-0000000000
+.kibana_task_manager_8.19.12_001                                   0     r      STARTED       46     0 instance-0000000001
+.ds-ilm-history-7-2026.04.22-000004                                0     r      STARTED      114     0 instance-0000000000
+.ds-ilm-history-7-2026.04.22-000004                                0     p      STARTED      114     0 instance-0000000001
+.ds-ilm-history-7-2026.04.01-000001                                0     p      STARTED      126     0 instance-0000000000
+.ds-ilm-history-7-2026.04.01-000001                                0     r      STARTED      126     0 instance-0000000001
+.kibana_usage_counters_8.19.12_001                                 0     p      STARTED      349     0 instance-0000000000
+.ds-ilm-history-7-2026.04.08-000002                                0     p      STARTED       79     0 instance-0000000000
+.ds-ilm-history-7-2026.04.08-000002                                0     r      STARTED       79     0 instance-0000000001
+.kibana_8.19.12_001                                                0     p      STARTED      123     0 instance-0000000000
+.ds-.slm-history-7-2026.04.29-000005                               0     r      STARTED       19     0 instance-0000000000
+.ds-.slm-history-7-2026.04.29-000005                               0     p      STARTED       19     0 instance-0000000001
+.kibana_usage_counters_8.19.12_001                                 0     r      STARTED      349     0 instance-0000000001
+.ds-ilm-history-7-2026.04.15-000003                                0     r      STARTED       76     0 instance-0000000000
+.ds-ilm-history-7-2026.04.15-000003                                0     p      STARTED       76     0 instance-0000000001
+.ds-.slm-history-7-2026.04.15-000003                               0     r      STARTED       28     0 instance-0000000000
+.ds-.slm-history-7-2026.04.15-000003                               0     p      STARTED       28     0 instance-0000000001
+.ds-.slm-history-7-2026.04.22-000004                               0     r      STARTED       27     0 instance-0000000000
+.ds-.slm-history-7-2026.04.22-000004                               0     p      STARTED       27     0 instance-0000000001
+.tasks                                                             0     p      STARTED       20     0 instance-0000000000
+.ds-ilm-history-7-2026.04.29-000005                                0     r      STARTED       59     0 instance-0000000000
+.ds-ilm-history-7-2026.04.29-000005                                0     p      STARTED       59     0 instance-0000000001
+.ds-.slm-history-7-2026.04.08-000002                               0     p      STARTED       25     0 instance-0000000000
+.ds-.slm-history-7-2026.04.08-000002                               0     r      STARTED       25     0 instance-0000000001
+.kibana_8.19.12_001                                                0     r      STARTED      123     0 instance-0000000001
+.tasks                                                             0     r      STARTED       20     0 instance-0000000001
+.security-profile-8                                                0     p      STARTED       10     0 instance-0000000000
+.security-profile-8                                                0     r      STARTED       10     0 instance-0000000001
+.security-tokens-7                                                 0     p      STARTED       10     0 instance-0000000000
+.ds-.slm-history-7-2026.04.01-000001                               0     p      STARTED       21     0 instance-0000000000
+.ds-.slm-history-7-2026.04.01-000001                               0     r      STARTED       21     0 instance-0000000001
+.ds-.kibana-event-log-ds-2026.04.01-000001                         0     p      STARTED        6     0 instance-0000000000
+.ds-.kibana-event-log-ds-2026.04.01-000001                         0     r      STARTED        6     0 instance-0000000001
+.monitoring-es-7-2026.04.01                                        0     p      STARTED        1     0 instance-0000000000
+.monitoring-es-7-2026.04.01                                        0     r      STARTED        1     0 instance-0000000001
+.security-tokens-7                                                 0     r      STARTED       10     0 instance-0000000001
+.kibana_security_solution_8.19.12_001                              0     p      STARTED        3     0 instance-0000000000
+.kibana_security_solution_8.19.12_001                              0     r      STARTED        3     0 instance-0000000001
+.monitoring-kibana-7-2026.04.01                                    0     p      STARTED        2     0 instance-0000000000
+.monitoring-kibana-7-2026.04.01                                    0     r      STARTED        2     0 instance-0000000001
+.ds-.logs-deprecation.elasticsearch-default-2026.05.01-000002      0     r      STARTED        1     0 instance-0000000000
+.ds-.logs-deprecation.elasticsearch-default-2026.05.01-000002      0     p      STARTED        1     0 instance-0000000001
+.ds-.kibana-event-log-ds-2026.04.08-000002                         0     p      STARTED        2     0 instance-0000000000
+.ds-.kibana-event-log-ds-2026.04.08-000002                         0     r      STARTED        2     0 instance-0000000001
+.kibana_alerting_cases_8.19.12_001                                 0     p      STARTED        1     0 instance-0000000000
+.kibana_alerting_cases_8.19.12_001                                 0     r      STARTED        1     0 instance-0000000001
+.kibana_security_session_1                                         0     p      STARTED        1     0 instance-0000000000
+.kibana_security_session_1                                         0     r      STARTED        1     0 instance-0000000001
+.inference                                                         0     p      STARTED        1     0 instance-0000000000
+.inference                                                         0     r      STARTED        1     0 instance-0000000001
+.secrets-inference                                                 0     p      STARTED        1     0 instance-0000000000
+.secrets-inference                                                 0     r      STARTED        1     0 instance-0000000001
+.async-search                                                      0     r      STARTED        0     0 instance-0000000000
+.async-search                                                      0     p      STARTED        0     0 instance-0000000001
+.kibana_locks-000001                                               0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.logs.alerts-default-000001          0     p      STARTED        0     0 instance-0000000000
+.ds-.kibana-event-log-ds-2026.04.15-000003                         0     p      STARTED        0     0 instance-0000000000
+.apm-custom-link                                                   0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.metrics.alerts-default-000001       0     p      STARTED        0     0 instance-0000000000
+.slo-observability.sli-v3.5                                        0     p      STARTED        0     0 instance-0000000000
+.slo-observability.summary-v3.5.temp                               0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-security.attack.discovery.alerts-default-000001   0     p      STARTED        0     0 instance-0000000000
+.apm-agent-configuration                                           0     p      STARTED        0     0 instance-0000000000
+.kibana-siem-rule-migrations-integrations                          0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-dataset.quality.alerts-default-000001             0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-default.alerts-default-000001                     0     p      STARTED        0     0 instance-0000000000
+.kibana_locks-000001                                               0     r      STARTED        0     0 instance-0000000001
+.kibana-siem-rule-migrations-prebuiltrules                         0     p      STARTED        0     0 instance-0000000000
+.apm-source-map                                                    0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-stack.alerts-default-000001                       0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.threshold.alerts-default-000001     0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-ml.anomaly-detection-health.alerts-default-000001 0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-streams.alerts-default-000001                     0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-ml.anomaly-detection.alerts-default-000001        0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.uptime.alerts-default-000001        0     p      STARTED        0     0 instance-0000000000
+.slo-observability.summary-v3.5                                    0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.slo.alerts-default-000001           0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-transform.health.alerts-default-000001            0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.apm.alerts-default-000001           0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-security.alerts-default-000001                    0     p      STARTED        0     0 instance-0000000000
+.internal.alerts-observability.logs.alerts-default-000001          0     r      STARTED        0     0 instance-0000000001
+.ds-.kibana-event-log-ds-2026.04.15-000003                         0     r      STARTED        0     0 instance-0000000001
+.apm-custom-link                                                   0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-observability.metrics.alerts-default-000001       0     r      STARTED        0     0 instance-0000000001
+.slo-observability.sli-v3.5                                        0     r      STARTED        0     0 instance-0000000001
+.slo-observability.summary-v3.5.temp                               0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-security.attack.discovery.alerts-default-000001   0     r      STARTED        0     0 instance-0000000001
+.apm-agent-configuration                                           0     r      STARTED        0     0 instance-0000000001
+.kibana-siem-rule-migrations-integrations                          0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-dataset.quality.alerts-default-000001             0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-default.alerts-default-000001                     0     r      STARTED        0     0 instance-0000000001
+.kibana-siem-rule-migrations-prebuiltrules                         0     r      STARTED        0     0 instance-0000000001
+.ds-metricbeat-8.19.13-2026.05.02-000002                           0     p      STARTED        0     0 instance-0000000000
+.ds-metricbeat-8.19.13-2026.05.02-000002                           0     r      STARTED        0     0 instance-0000000001
+.apm-source-map                                                    0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-stack.alerts-default-000001                       0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-observability.threshold.alerts-default-000001     0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-ml.anomaly-detection-health.alerts-default-000001 0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-streams.alerts-default-000001                     0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-ml.anomaly-detection.alerts-default-000001        0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-observability.uptime.alerts-default-000001        0     r      STARTED        0     0 instance-0000000001
+.slo-observability.summary-v3.5                                    0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-observability.slo.alerts-default-000001           0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-transform.health.alerts-default-000001            0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-observability.apm.alerts-default-000001           0     r      STARTED        0     0 instance-0000000001
+.internal.alerts-security.alerts-default-000001                    0     r      STARTED        0     0 instance-0000000001
+
+# 7: GET /_cat/indices?v&h=health,status,index,pri,rep,docs.count,docs.deleted,store.size,pri.store.size,creation.date.string&s=store.size:desc&bytes=gb 200 OK
+health status index                                                              pri rep docs.count docs.deleted store.size pri.store.size creation.date.string
+green  open   .ds-elastic-cloud-logs-8-2026.04.02-000001                           1   1   94366782            0         90             45 2026-04-02T13:18:17.168Z
+green  open   .ds-.monitoring-es-8-mb-2026.04.29-000017                            1   1    3525619            0          5              2 2026-04-29T14:36:42.788Z
+green  open   .ds-elastic-cloud-logs-8-2026.05.02-000002                           1   1    4884582            0          4              2 2026-05-02T13:26:42.562Z
+green  open   .ds-.monitoring-es-8-mb-2026.05.02-000019                            1   1    1550148            0          2              1 2026-05-02T14:46:42.575Z
+green  open   cdm_cpe_dictionary                                                   1   1    4464000            0          1              0 2026-05-01T20:44:06.402Z
+green  open   .ds-metricbeat-8.19.14-2026.04.15-000001                             1   1    2731086            0          1              0 2026-04-15T15:49:06.963Z
+green  open   .ds-metricbeat-8.19.13-2026.04.02-000001                             1   1    1678484            0          0              0 2026-04-02T13:18:11.871Z
+green  open   .ds-.monitoring-kibana-8-mb-2026.04.29-000017                        1   1     389699            0          0              0 2026-04-29T14:36:42.596Z
+green  open   .ds-.monitoring-kibana-8-mb-2026.05.02-000019                        1   1     171184            0          0              0 2026-05-02T14:46:42.586Z
+green  open   .monitoring-es-7-2026.04.01                                          1   1          1            0          0              0 2026-04-01T20:21:07.986Z
+green  open   .monitoring-kibana-7-2026.04.01                                      1   1          2            0          0              0 2026-04-01T20:20:50.709Z
+green  open   .internal.alerts-transform.health.alerts-default-000001              1   1          0            0          0              0 2026-04-01T20:13:50.914Z
+green  open   .internal.alerts-ml.anomaly-detection.alerts-default-000001          1   1          0            0          0              0 2026-04-01T20:13:55.011Z
+green  open   .internal.alerts-observability.slo.alerts-default-000001             1   1          0            0          0              0 2026-04-01T20:13:51.220Z
+green  open   .internal.alerts-default.alerts-default-000001                       1   1          0            0          0              0 2026-04-01T20:13:49.013Z
+green  open   .internal.alerts-streams.alerts-default-000001                       1   1          0            0          0              0 2026-04-01T20:13:52.815Z
+green  open   .internal.alerts-observability.apm.alerts-default-000001             1   1          0            0          0              0 2026-04-01T20:13:50.018Z
+green  open   .internal.alerts-security.attack.discovery.alerts-default-000001     1   1          0            0          0              0 2026-04-01T20:13:53.717Z
+green  open   .internal.alerts-observability.metrics.alerts-default-000001         1   1          0            0          0              0 2026-04-01T20:13:53.112Z
+green  open   .internal.alerts-ml.anomaly-detection-health.alerts-default-000001   1   1          0            0          0              0 2026-04-01T20:13:55.415Z
+green  open   .internal.alerts-security.alerts-default-000001                      1   1          0            0          0              0 2026-04-01T20:13:54.276Z
+green  open   .internal.alerts-stack.alerts-default-000001                         1   1          0            0          0              0 2026-04-01T20:13:49.685Z
+green  open   .internal.alerts-observability.logs.alerts-default-000001            1   1          0            0          0              0 2026-04-01T20:13:54.712Z
+green  open   .internal.alerts-observability.uptime.alerts-default-000001          1   1          0            0          0              0 2026-04-01T20:13:54.510Z
+green  open   .internal.alerts-observability.threshold.alerts-default-000001       1   1          0            0          0              0 2026-04-01T20:13:52.020Z
+green  open   .internal.alerts-dataset.quality.alerts-default-000001               1   1          0            0          0              0 2026-04-01T20:13:51.615Z
+green  open   .ds-metricbeat-8.19.13-2026.05.02-000002                             1   1          0            0          0              0 2026-05-02T13:26:42.765Z
