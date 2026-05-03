@@ -1,0 +1,842 @@
+# 1: GET /_cluster/health 200 OK
+{
+  "cluster_name": "2a2f99e6310c4bba906abf3d70c46ffa",
+  "status": "green",
+  "timed_out": false,
+  "number_of_nodes": 10,
+  "number_of_data_nodes": 4,
+  "active_primary_shards": 279,
+  "active_shards": 627,
+  "relocating_shards": 0,
+  "initializing_shards": 0,
+  "unassigned_shards": 0,
+  "unassigned_primary_shards": 0,
+  "delayed_unassigned_shards": 0,
+  "number_of_pending_tasks": 0,
+  "number_of_in_flight_fetch": 0,
+  "task_max_waiting_in_queue_millis": 0,
+  "active_shards_percent_as_number": 100
+}
+# 2: GET /_cat/nodes?v&h=name,ip,node.role,master,heap.percent,heap.current,heap.max,ram.percent,cpu,load_1m,load_5m,load_15m,disk.used_percent,version&s=name 200 OK
+name                ip            node.role master heap.percent heap.current heap.max ram.percent cpu load_1m load_5m load_15m disk.used_percent version
+instance-0000000004 10.160.50.250 mr        -                39        1.4gb    3.7gb          58   0    3.88    3.76     3.76              0.12 8.19.14
+instance-0000000005 10.160.53.192 mr        *                 9      364.8mb    3.7gb          64   0    0.34    0.32     0.42              0.15 8.19.14
+instance-0000000006 10.160.53.192 hrst      -                27        1.9gb    7.2gb          92   0    0.34    0.32     0.42             33.99 8.19.14
+instance-0000000007 10.160.49.220 hrst      -                63        4.6gb    7.2gb          90   0    1.66    1.03     0.78             23.13 8.19.14
+instance-0000000008 10.160.50.224 hrst      -                74        5.4gb    7.2gb          75   0    0.88    0.94     0.95             36.48 8.19.14
+instance-0000000009 10.160.49.66  f         -                16      621.1mb    3.7gb          58   1    0.17    0.26     0.41             90.04 8.19.14
+instance-0000000010 10.160.52.107 ir        -                44        3.2gb    7.2gb          59   0    0.26    0.30     0.33              0.35 8.19.14
+instance-0000000011 10.160.48.115 ir        -                41          3gb    7.2gb          58   0    0.21    0.43     0.56              0.31 8.19.14
+instance-0000000012 10.160.50.132 ir        -                31        2.3gb    7.2gb          58   0    0.07    0.26     0.33              0.35 8.19.14
+instance-0000000013 10.160.49.220 mr        -                51        1.9gb    3.7gb          59   0    1.66    1.03     0.78              0.11 8.19.14
+
+# 3: GET /_cat/allocation?v&s=node 200 OK
+shards shards.undesired   write_load.forecast disk.indices.forecast disk.indices disk.used disk.avail disk.total disk.percent host          ip            node                node.role
+   208                0 1.1396334887064915E-5               137.2gb      137.2gb   137.6gb    267.3gb      405gb           33 10.160.53.192 10.160.53.192 instance-0000000006 hrst
+   211                0 1.0605336650640916E-5                93.3gb       93.3gb    93.6gb    311.3gb      405gb           23 10.160.49.220 10.160.49.220 instance-0000000007 hrst
+   208                0 2.1741971224381356E-5               147.3gb      147.3gb   147.7gb    257.2gb      405gb           36 10.160.50.224 10.160.50.224 instance-0000000008 hrst
+     0                0                   0.0                    0b           0b   540.2gb     59.7gb      600gb           90 10.160.49.66  10.160.49.66  instance-0000000009 f
+
+# 4: GET /_cluster/allocation/explain 400 Bad Request
+{
+  "error": {
+    "root_cause": [
+      {
+        "type": "illegal_argument_exception",
+        "reason": "No shard was specified in the request which means the response should explain a randomly-chosen unassigned shard, but there are no unassigned shards in this cluster. To explain the allocation of an assigned shard you must specify the target shard in the request. See https://www.elastic.co/guide/en/elasticsearch/reference/8.19/cluster-allocation-explain.html for more information."
+      }
+    ],
+    "type": "illegal_argument_exception",
+    "reason": "No shard was specified in the request which means the response should explain a randomly-chosen unassigned shard, but there are no unassigned shards in this cluster. To explain the allocation of an assigned shard you must specify the target shard in the request. See https://www.elastic.co/guide/en/elasticsearch/reference/8.19/cluster-allocation-explain.html for more information."
+  },
+  "status": 400
+}
+# 5: GET /_cat/allocation?v&h=node,shards,disk.indices 200 OK
+node                shards disk.indices
+instance-0000000009      0           0b
+instance-0000000008    208      147.3gb
+instance-0000000006    208      137.2gb
+instance-0000000007    211       93.3gb
+
+# 6: GET /_cat/shards?v&h=index,shard,prirep,state,docs,store,node&bytes=gb&s=store:desc 200 OK
+index                                                                                                                           shard prirep state       docs store node
+cdm_swam_trending-6-0000001                                                                                                     0     r      STARTED 69856111    40 instance-0000000007
+cdm_swam_trending-6-0000001                                                                                                     0     p      STARTED 69856111    40 instance-0000000006
+cdm_swam_trending-6-000003                                                                                                      0     p      STARTED 53569835    40 instance-0000000006
+cdm_swam_trending-6-000002                                                                                                      0     r      STARTED 61305752    40 instance-0000000008
+cdm_swam_trending-6-000003                                                                                                      0     r      STARTED 53569835    40 instance-0000000008
+cdm_swam_trending-6-000002                                                                                                      0     p      STARTED 61305752    40 instance-0000000007
+cdm_vuln_trending-6-0000001                                                                                                     0     p      STARTED 20512073    36 instance-0000000006
+cdm_vuln_trending-6-0000001                                                                                                     0     r      STARTED 20512073    36 instance-0000000008
+cdm_swam                                                                                                                        0     r      STARTED  7166751    18 instance-0000000008
+cdm_swam                                                                                                                        0     p      STARTED  7166751    14 instance-0000000006
+cdm_swam_trending-6-000004                                                                                                      0     p      STARTED  6977007     5 instance-0000000008
+cdm_swam_trending-6-000004                                                                                                      0     r      STARTED  6977007     5 instance-0000000007
+cdm_device_scan_trending-6-0000001                                                                                              0     p      STARTED  5143071     2 instance-0000000007
+cdm_device_scan_trending-6-0000001                                                                                              0     r      STARTED  5143071     2 instance-0000000008
+cdm_vuln                                                                                                                        0     r      STARTED   549804     1 instance-0000000008
+cdm_vuln                                                                                                                        0     p      STARTED   549804     1 instance-0000000006
+cdm_cve_dictionary                                                                                                              0     r      STARTED   347756     1 instance-0000000007
+cdm_hwam_trending-6-0000001                                                                                                     0     p      STARTED  1482236     1 instance-0000000006
+cdm_hwam_trending-6-0000001                                                                                                     0     r      STARTED  1482236     1 instance-0000000007
+cdm_cve_dictionary                                                                                                              0     p      STARTED   347756     1 instance-0000000006
+cdm_software_dictionary                                                                                                         0     p      STARTED  1680400     0 instance-0000000008
+cdm_errors_host_interface                                                                                                       0     r      STARTED  1727172     0 instance-0000000008
+cdm_errors_host_interface                                                                                                       0     p      STARTED  1727172     0 instance-0000000007
+cdm_cpe_dictionary                                                                                                              0     r      STARTED  1649378     0 instance-0000000008
+cdm_software_dictionary                                                                                                         0     r      STARTED  1680400     0 instance-0000000007
+cdm_errors_system_boundary                                                                                                      0     p      STARTED  1501366     0 instance-0000000006
+cdm_errors_system_boundary                                                                                                      0     r      STARTED  1501366     0 instance-0000000008
+cdm_threat                                                                                                                      0     r      STARTED   102799     0 instance-0000000008
+cdm_cpe_dictionary                                                                                                              0     p      STARTED  1649378     0 instance-0000000007
+cdm_threat                                                                                                                      0     p      STARTED   102799     0 instance-0000000006
+cdm_stig_dictionary                                                                                                             0     r      STARTED    84892     0 instance-0000000008
+cdm_stig_dictionary                                                                                                             0     p      STARTED    84892     0 instance-0000000006
+cdm_errors_device_scan                                                                                                          0     r      STARTED   454180     0 instance-0000000006
+cdm_device_scan                                                                                                                 0     p      STARTED   230861     0 instance-0000000006
+cdm_device_scan                                                                                                                 0     r      STARTED   230861     0 instance-0000000007
+cdm_errors_device_scan                                                                                                          0     p      STARTED   454180     0 instance-0000000007
+cdm_hwam                                                                                                                        0     r      STARTED    73593     0 instance-0000000008
+cdm_hwam                                                                                                                        0     p      STARTED    73593     0 instance-0000000007
+.enrich-cdm_software_dictionary_eol-1777806123942                                                                               0     r      STARTED  1680400     0 instance-0000000007
+.enrich-cdm_software_dictionary_eol-1777806123942                                                                               0     r      STARTED  1680400     0 instance-0000000008
+.enrich-cdm_software_dictionary_eol-1777806123942                                                                               0     p      STARTED  1680400     0 instance-0000000006
+.ds-.kibana-reporting-2026.03.31-000001                                                                                         0     p      STARTED       18     0 instance-0000000006
+.ds-.kibana-reporting-2026.03.31-000001                                                                                         0     r      STARTED       18     0 instance-0000000008
+cdm_errors_swam                                                                                                                 0     p      STARTED    53423     0 instance-0000000006
+cdm_errors_swam                                                                                                                 0     r      STARTED    53423     0 instance-0000000007
+cdm_errors_vuln                                                                                                                 0     r      STARTED     8691     0 instance-0000000007
+cdm_host_interface                                                                                                              0     r      STARTED   102242     0 instance-0000000008
+cdm_host_interface                                                                                                              0     p      STARTED   102242     0 instance-0000000007
+cdm_errors_vuln                                                                                                                 0     p      STARTED     8691     0 instance-0000000008
+.enrich-cdm_vuln_cve-1776088113328                                                                                              0     p      STARTED   344038     0 instance-0000000006
+.enrich-cdm_vuln_cve-1776088113328                                                                                              0     r      STARTED   344038     0 instance-0000000007
+.enrich-cdm_vuln_cve-1776088113328                                                                                              0     r      STARTED   344038     0 instance-0000000008
+.enrich-cdm_vuln_aware_cve-1777766142847                                                                                        0     r      STARTED   347756     0 instance-0000000006
+.enrich-cdm_vuln_aware_cve-1777766142847                                                                                        0     r      STARTED   347756     0 instance-0000000008
+.enrich-cdm_vuln_aware_cve-1777766142847                                                                                        0     p      STARTED   347756     0 instance-0000000007
+.enrich-cdm_csm_aware_stig-1777793134309                                                                                        0     r      STARTED    84892     0 instance-0000000007
+.enrich-cdm_csm_aware_stig-1777793134309                                                                                        0     r      STARTED    84892     0 instance-0000000008
+.enrich-cdm_csm_aware_stig-1777793134309                                                                                        0     p      STARTED    84892     0 instance-0000000006
+.enrich-cdm_csm_stig-1775589267906                                                                                              0     p      STARTED    84192     0 instance-0000000006
+.enrich-cdm_csm_stig-1775589267906                                                                                              0     r      STARTED    84192     0 instance-0000000007
+.enrich-cdm_csm_stig-1775589267906                                                                                              0     r      STARTED    84192     0 instance-0000000008
+.kibana_analytics_8.19.10_001                                                                                                   0     p      STARTED     4891     0 instance-0000000008
+.kibana_analytics_8.19.10_001                                                                                                   0     r      STARTED     4891     0 instance-0000000006
+.tasks                                                                                                                          0     p      STARTED    30844     0 instance-0000000006
+.tasks                                                                                                                          0     r      STARTED    30844     0 instance-0000000008
+.kibana_ingest_8.19.10_001                                                                                                      0     p      STARTED      192     0 instance-0000000007
+.kibana_ingest_8.19.10_001                                                                                                      0     r      STARTED      192     0 instance-0000000006
+cdm_errors_hwam                                                                                                                 0     r      STARTED      668     0 instance-0000000008
+.ds-ilm-history-7-2026.04.27-000008                                                                                             0     p      STARTED      504     0 instance-0000000007
+.ds-ilm-history-7-2026.04.27-000008                                                                                             0     r      STARTED      504     0 instance-0000000008
+.ds-ilm-history-7-2026.04.13-000006                                                                                             0     r      STARTED      568     0 instance-0000000007
+cdm_errors_hwam                                                                                                                 0     p      STARTED      668     0 instance-0000000006
+.ds-ilm-history-7-2026.04.06-000005                                                                                             0     p      STARTED      562     0 instance-0000000007
+.ds-ilm-history-7-2026.04.06-000005                                                                                             0     r      STARTED      562     0 instance-0000000008
+data_dictionary                                                                                                                 0     p      STARTED     3858     0 instance-0000000006
+data_dictionary                                                                                                                 0     r      STARTED     3858     0 instance-0000000007
+.ds-ilm-history-7-2026.04.20-000007                                                                                             0     r      STARTED      530     0 instance-0000000007
+.ds-ilm-history-7-2026.04.20-000007                                                                                             0     p      STARTED      530     0 instance-0000000006
+.ds-metrics-fleet_server.agent_status-default-2026.03.09-000001                                                                 0     r      STARTED    43230     0 instance-0000000006
+.ds-metrics-fleet_server.agent_status-default-2026.03.09-000001                                                                 0     p      STARTED    43230     0 instance-0000000007
+.ds-ilm-history-7-2026.04.13-000006                                                                                             0     p      STARTED      568     0 instance-0000000006
+.ds-ilm-history-7-2026.03.30-000004                                                                                             0     p      STARTED      482     0 instance-0000000006
+.ds-ilm-history-7-2026.03.30-000004                                                                                             0     r      STARTED      482     0 instance-0000000008
+.ds-metrics-fleet_server.agent_versions-default-2026.03.09-000001                                                               0     p      STARTED    43230     0 instance-0000000006
+.ds-metrics-fleet_server.agent_versions-default-2026.03.09-000001                                                               0     r      STARTED    43230     0 instance-0000000008
+.ds-metrics-fleet_server.agent_status-default-2026.04.08-000002                                                                 0     p      STARTED    35764     0 instance-0000000007
+.ds-metrics-fleet_server.agent_status-default-2026.04.08-000002                                                                 0     r      STARTED    35764     0 instance-0000000008
+cdm_kev_dictionary                                                                                                              0     p      STARTED     1587     0 instance-0000000008
+cdm_kev_dictionary                                                                                                              0     r      STARTED     1587     0 instance-0000000007
+.ds-metrics-fleet_server.agent_versions-default-2026.04.08-000002                                                               0     p      STARTED    35764     0 instance-0000000006
+.ds-metrics-fleet_server.agent_versions-default-2026.04.08-000002                                                               0     r      STARTED    35764     0 instance-0000000008
+.security-7                                                                                                                     0     r      STARTED      475     0 instance-0000000007
+.security-7                                                                                                                     0     p      STARTED      475     0 instance-0000000006
+cdm_cyhy_host_scans                                                                                                             0     p      STARTED     2948     0 instance-0000000006
+cdm_cyhy_host_scans                                                                                                             0     r      STARTED     2948     0 instance-0000000008
+.ds-cdm_cyhy_domain_trending-2026.03.16-000017                                                                                  0     p      STARTED     1552     0 instance-0000000007
+.ds-cdm_cyhy_domain_trending-2026.03.16-000017                                                                                  0     r      STARTED     1552     0 instance-0000000008
+.ds-cdm_cyhy_domain_trending-2026.01.15-000013                                                                                  0     r      STARTED     1310     0 instance-0000000006
+.ds-cdm_cyhy_domain_trending-2026.01.15-000013                                                                                  0     p      STARTED     1310     0 instance-0000000007
+.ds-cdm_cyhy_domain_trending-2026.02.14-000014                                                                                  0     p      STARTED     1310     0 instance-0000000006
+.ds-cdm_cyhy_domain_trending-2026.02.14-000014                                                                                  0     r      STARTED     1310     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2026.03.16-000014                                                                              0     p      STARTED     1368     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2026.03.16-000014                                                                              0     r      STARTED     1368     0 instance-0000000008
+cdm_errors_organization                                                                                                         0     p      STARTED     1432     0 instance-0000000008
+.ds-cdm_cyhy_domain_trending-2025.12.16-000011                                                                                  0     p      STARTED     1048     0 instance-0000000006
+.ds-cdm_cyhy_domain_trending-2025.12.16-000011                                                                                  0     r      STARTED     1048     0 instance-0000000008
+.ds-cdm_cyhy_vuln_trending-2026.01.01-000011                                                                                    0     p      STARTED       36     0 instance-0000000007
+.ds-cdm_cyhy_vuln_trending-2026.01.01-000011                                                                                    0     r      STARTED       36     0 instance-0000000008
+.ds-cdm_cyhy_host_scans_trending-2026.02.14-000012                                                                              0     p      STARTED      814     0 instance-0000000006
+.ds-cdm_cyhy_host_scans_trending-2026.02.14-000012                                                                              0     r      STARTED      814     0 instance-0000000008
+cdm_errors_organization                                                                                                         0     r      STARTED     1432     0 instance-0000000007
+.ds-.slm-history-7-2026.04.20-000007                                                                                            0     p      STARTED      673     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2026.01.15-000011                                                                              0     p      STARTED      254     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2026.01.15-000011                                                                              0     r      STARTED      254     0 instance-0000000008
+.ds-cdm_cyhy_host_scans_trending-2025.12.16-000009                                                                              0     r      STARTED      233     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2025.12.16-000009                                                                              0     p      STARTED      233     0 instance-0000000008
+.ds-.logs-deprecation.elasticsearch-default-2026.03.09-000001                                                                   0     p      STARTED       75     0 instance-0000000006
+.ds-.logs-deprecation.elasticsearch-default-2026.03.09-000001                                                                   0     r      STARTED       75     0 instance-0000000008
+.ds-cdm_cyhy_vuln_trending-2026.01.31-000013                                                                                    0     p      STARTED       45     0 instance-0000000006
+.ds-cdm_cyhy_vuln_trending-2026.01.31-000013                                                                                    0     r      STARTED       45     0 instance-0000000008
+.ds-.slm-history-7-2026.03.23-000003                                                                                            0     p      STARTED      635     0 instance-0000000006
+.ds-.slm-history-7-2026.03.23-000003                                                                                            0     r      STARTED      635     0 instance-0000000007
+.kibana_8.19.10_001                                                                                                             0     p      STARTED      416     0 instance-0000000006
+.kibana_usage_counters_8.19.10_001                                                                                              0     r      STARTED      922     0 instance-0000000008
+.ds-.slm-history-7-2026.04.20-000007                                                                                            0     r      STARTED      673     0 instance-0000000008
+.ds-cdm_cyhy_host_scans_trending-2026.04.15-000017                                                                              0     r      STARTED      710     0 instance-0000000007
+.ds-cdm_cyhy_host_scans_trending-2026.04.15-000017                                                                              0     p      STARTED      710     0 instance-0000000006
+.ds-.slm-history-7-2026.03.16-000002                                                                                            0     p      STARTED      665     0 instance-0000000007
+.ds-.slm-history-7-2026.03.16-000002                                                                                            0     r      STARTED      665     0 instance-0000000008
+.ds-.slm-history-7-2026.04.06-000005                                                                                            0     r      STARTED      671     0 instance-0000000006
+.ds-.slm-history-7-2026.04.06-000005                                                                                            0     p      STARTED      671     0 instance-0000000007
+.cdm_config_history                                                                                                             0     p      STARTED      656     0 instance-0000000006
+.ds-.slm-history-7-2026.03.30-000004                                                                                            0     r      STARTED      672     0 instance-0000000006
+.ds-.slm-history-7-2026.03.30-000004                                                                                            0     p      STARTED      672     0 instance-0000000008
+.ds-.slm-history-7-2026.04.27-000008                                                                                            0     p      STARTED      601     0 instance-0000000006
+.ds-.slm-history-7-2026.04.27-000008                                                                                            0     r      STARTED      601     0 instance-0000000008
+.ds-.slm-history-7-2026.04.13-000006                                                                                            0     p      STARTED      670     0 instance-0000000007
+.ds-.slm-history-7-2026.04.13-000006                                                                                            0     r      STARTED      670     0 instance-0000000008
+.ds-.slm-history-7-2026.03.09-000001                                                                                            0     p      STARTED      573     0 instance-0000000007
+.ds-.slm-history-7-2026.03.09-000001                                                                                            0     r      STARTED      573     0 instance-0000000008
+.cdm_config_history                                                                                                             0     r      STARTED      656     0 instance-0000000008
+.ds-cdm_cyhy_vuln_trending-2026.04.01-000017                                                                                    0     p      STARTED       29     0 instance-0000000006
+.ds-cdm_cyhy_vuln_trending-2026.04.01-000017                                                                                    0     r      STARTED       29     0 instance-0000000008
+.kibana_8.19.10_001                                                                                                             0     r      STARTED      416     0 instance-0000000008
+.ds-cdm_cyhy_domain_trending-2026.04.15-000019                                                                                  0     r      STARTED      524     0 instance-0000000007
+.ds-cdm_cyhy_domain_trending-2026.04.15-000019                                                                                  0     p      STARTED      524     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2025.11.22-000011                                                                            0     p      STARTED      378     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2025.11.22-000011                                                                            0     r      STARTED      378     0 instance-0000000008
+cdm_directive_dictionary                                                                                                        0     r      STARTED       30     0 instance-0000000006
+cdm_directive_dictionary                                                                                                        0     p      STARTED       30     0 instance-0000000007
+cdm_cyhy_vuln                                                                                                                   0     r      STARTED       37     0 instance-0000000007
+cdm_cyhy_vuln                                                                                                                   0     p      STARTED       37     0 instance-0000000008
+.kibana_task_manager_8.19.10_001                                                                                                0     p      STARTED       47     0 instance-0000000007
+.kibana_usage_counters_8.19.10_001                                                                                              0     p      STARTED      922     0 instance-0000000007
+.ds-cdm_scuba_m365_result_trending-2025.12.15-000013                                                                            0     p      STARTED      252     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2025.12.15-000013                                                                            0     r      STARTED      252     0 instance-0000000007
+.ds-cdm_scuba_m365_result_trending-2025.09.03-000008                                                                            0     p      STARTED      252     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2025.09.03-000008                                                                            0     r      STARTED      252     0 instance-0000000007
+.enrich-cdm_cdo_temp-1775854790837                                                                                              0     p      STARTED     3858     0 instance-0000000006
+.enrich-cdm_cdo_temp-1775854790837                                                                                              0     r      STARTED     3858     0 instance-0000000007
+.enrich-cdm_cdo_temp-1775854790837                                                                                              0     r      STARTED     3858     0 instance-0000000008
+.ds-.logs-deprecation.elasticsearch-default-2026.04.08-000002                                                                   0     r      STARTED       51     0 instance-0000000006
+.ds-.logs-deprecation.elasticsearch-default-2026.04.08-000002                                                                   0     p      STARTED       51     0 instance-0000000007
+cdm_scuba_m365_result                                                                                                           0     p      STARTED      252     0 instance-0000000006
+cdm_scuba_m365_result                                                                                                           0     r      STARTED      252     0 instance-0000000008
+.kibana_task_manager_8.19.10_001                                                                                                0     r      STARTED       47     0 instance-0000000008
+.transform-internal-007                                                                                                         0     r      STARTED      181     0 instance-0000000007
+.ds-cdm_cyhy_vuln_trending-2026.03.02-000015                                                                                    0     p      STARTED       19     0 instance-0000000007
+.ds-cdm_cyhy_vuln_trending-2026.03.02-000015                                                                                    0     r      STARTED       19     0 instance-0000000008
+.transform-internal-007                                                                                                         0     p      STARTED      181     0 instance-0000000006
+.transform-notifications-000002                                                                                                 0     r      STARTED      466     0 instance-0000000006
+.transform-notifications-000002                                                                                                 0     p      STARTED      466     0 instance-0000000007
+cdm_cyhy_domain                                                                                                                 0     p      STARTED      262     0 instance-0000000006
+cdm_cyhy_domain                                                                                                                 0     r      STARTED      262     0 instance-0000000008
+cdm_organization                                                                                                                0     p      STARTED        1     0 instance-0000000006
+cdm_organization                                                                                                                0     r      STARTED        1     0 instance-0000000007
+cdm_scuba_m365_result_latest                                                                                                    0     p      STARTED      126     0 instance-0000000006
+cdm_scuba_m365_result_latest                                                                                                    0     r      STARTED      126     0 instance-0000000008
+.ds-cdm_cyhy_domain_ssl_trending-2026.03.16-000015                                                                              0     p      STARTED      206     0 instance-0000000006
+.ds-cdm_cyhy_domain_ssl_trending-2026.03.16-000015                                                                              0     r      STARTED      206     0 instance-0000000008
+.ds-cdm_scuba_m365_result_trending-2026.01.14-000015                                                                            0     p      STARTED      126     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2026.01.14-000015                                                                            0     r      STARTED      126     0 instance-0000000008
+.ds-cdm_scuba_m365_result_trending-2026.03.31-000016                                                                            0     p      STARTED      126     0 instance-0000000007
+.ds-cdm_scuba_m365_result_trending-2026.03.31-000016                                                                            0     r      STARTED      126     0 instance-0000000008
+.ds-cdm_scuba_m365_result_trending-2025.10.03-000009                                                                            0     r      STARTED      126     0 instance-0000000006
+.ds-cdm_scuba_m365_result_trending-2025.10.03-000009                                                                            0     p      STARTED      126     0 instance-0000000007
+.ds-ilm-history-7-2026.03.09-000001                                                                                             0     p      STARTED      134     0 instance-0000000007
+.ds-ilm-history-7-2026.03.09-000001                                                                                             0     r      STARTED      134     0 instance-0000000008
+.cdm_config                                                                                                                     0     p      STARTED       26     0 instance-0000000006
+.cdm_config                                                                                                                     0     r      STARTED       26     0 instance-0000000007
+.ds-cdm_cyhy_domain_ssl_trending-2026.01.15-000011                                                                              0     r      STARTED      167     0 instance-0000000006
+.ds-cdm_cyhy_domain_ssl_trending-2026.01.15-000011                                                                              0     p      STARTED      167     0 instance-0000000007
+.ds-cdm_cyhy_domain_ssl_trending-2025.12.16-000009                                                                              0     p      STARTED      164     0 instance-0000000006
+.ds-cdm_cyhy_domain_ssl_trending-2025.12.16-000009                                                                              0     r      STARTED      164     0 instance-0000000008
+.ds-cdm_cyhy_domain_ssl_trending-2026.02.14-000012                                                                              0     p      STARTED      162     0 instance-0000000006
+.ds-cdm_cyhy_domain_ssl_trending-2026.02.14-000012                                                                              0     r      STARTED      162     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.09.03-000008                                                         0     r      STARTED       74     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.09.03-000008                                                         0     p      STARTED       74     0 instance-0000000008
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.12.22-000013                                                         0     p      STARTED       74     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.12.22-000013                                                         0     r      STARTED       74     0 instance-0000000008
+.security-profile-8                                                                                                             0     p      STARTED       46     0 instance-0000000007
+.security-profile-8                                                                                                             0     r      STARTED       46     0 instance-0000000008
+.ds-cdm_asm_nmi_trending-2025.12.24-000015                                                                                      0     r      STARTED       45     0 instance-0000000007
+.ds-cdm_asm_nmi_trending-2025.12.24-000015                                                                                      0     p      STARTED       45     0 instance-0000000008
+.ds-cdm_asm_nmi_trending-2026.03.16-000021                                                                                      0     p      STARTED       30     0 instance-0000000007
+.ds-cdm_asm_nmi_trending-2026.03.16-000021                                                                                      0     r      STARTED       30     0 instance-0000000008
+.fleet-policies-7                                                                                                               0     p      STARTED        7     0 instance-0000000007
+.fleet-policies-7                                                                                                               0     r      STARTED        7     0 instance-0000000008
+.ds-ilm-history-7-2026.03.16-000002                                                                                             0     p      STARTED       40     0 instance-0000000006
+.ds-ilm-history-7-2026.03.16-000002                                                                                             0     r      STARTED       40     0 instance-0000000008
+cdm_scuba_m365_conditional_access_policy                                                                                        0     p      STARTED       69     0 instance-0000000008
+cdm_scuba_m365_conditional_access_policy                                                                                        0     r      STARTED       69     0 instance-0000000007
+cdm_cyhy_domain_ssl                                                                                                             0     p      STARTED       38     0 instance-0000000006
+cdm_cyhy_domain_ssl                                                                                                             0     r      STARTED       38     0 instance-0000000008
+.kibana_security_session_1                                                                                                      0     r      STARTED       13     0 instance-0000000008
+.security-tokens-7                                                                                                              0     p      STARTED        5     0 instance-0000000006
+.ds-cdm_cyhy_domain_ssl_trending-2026.04.15-000017                                                                              0     r      STARTED       78     0 instance-0000000008
+.ds-cdm_cyhy_domain_ssl_trending-2026.04.15-000017                                                                              0     p      STARTED       78     0 instance-0000000006
+cdm_scuba_m365_conditional_access_policy_latest                                                                                 0     p      STARTED       39     0 instance-0000000006
+cdm_scuba_m365_conditional_access_policy_latest                                                                                 0     r      STARTED       39     0 instance-0000000008
+.security-tokens-7                                                                                                              0     r      STARTED        5     0 instance-0000000008
+.kibana_security_session_1                                                                                                      0     p      STARTED       12     0 instance-0000000006
+.ds-cdm_scuba_m365_license_trending-2025.12.22-000013                                                                           0     p      STARTED       46     0 instance-0000000007
+.ds-cdm_scuba_m365_license_trending-2025.12.22-000013                                                                           0     r      STARTED       46     0 instance-0000000008
+.ds-cdm_scuba_m365_license_trending-2025.09.03-000008                                                                           0     p      STARTED       46     0 instance-0000000007
+.ds-cdm_scuba_m365_license_trending-2025.09.03-000008                                                                           0     r      STARTED       46     0 instance-0000000008
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.10.03-000009                                                         0     p      STARTED       37     0 instance-0000000006
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.10.03-000009                                                         0     r      STARTED       37     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.11.22-000011                                                         0     p      STARTED       37     0 instance-0000000006
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2025.11.22-000011                                                         0     r      STARTED       37     0 instance-0000000008
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.01.21-000015                                                         0     p      STARTED       32     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.01.21-000015                                                         0     r      STARTED       32     0 instance-0000000008
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.03.31-000016                                                         0     p      STARTED       32     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.03.31-000016                                                         0     r      STARTED       32     0 instance-0000000008
+.ds-logs-enterprise_search.audit-default-2026.03.09-000001                                                                      0     p      STARTED        9     0 instance-0000000006
+.ds-logs-enterprise_search.audit-default-2026.03.09-000001                                                                      0     r      STARTED        9     0 instance-0000000007
+.kibana_security_solution_8.19.10_001                                                                                           0     p      STARTED        3     0 instance-0000000007
+.kibana_security_solution_8.19.10_001                                                                                           0     r      STARTED        3     0 instance-0000000008
+.ds-.kibana-event-log-ds-2026.03.09-000001                                                                                      0     p      STARTED        5     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.03.09-000001                                                                                      0     r      STARTED        5     0 instance-0000000006
+cdm_asm_nmi                                                                                                                     0     p      STARTED       15     0 instance-0000000006
+cdm_asm_nmi                                                                                                                     0     r      STARTED       15     0 instance-0000000008
+.ds-cdm_asm_nmi_trending-2026.01.23-000017                                                                                      0     p      STARTED       15     0 instance-0000000006
+.ds-cdm_asm_nmi_trending-2026.01.23-000017                                                                                      0     r      STARTED       15     0 instance-0000000008
+.ds-.kibana-event-log-ds-2026.03.25-000003                                                                                      0     p      STARTED        6     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.03.25-000003                                                                                      0     r      STARTED        6     0 instance-0000000006
+.fleet-agents-7                                                                                                                 0     p      STARTED        2     0 instance-0000000006
+.fleet-agents-7                                                                                                                 0     r      STARTED        2     0 instance-0000000007
+cdm_scuba_m365_license                                                                                                          0     p      STARTED       43     0 instance-0000000006
+cdm_scuba_m365_license                                                                                                          0     r      STARTED       43     0 instance-0000000007
+cdm_scuba_m365_license_latest                                                                                                   0     p      STARTED       26     0 instance-0000000007
+cdm_scuba_m365_license_latest                                                                                                   0     r      STARTED       26     0 instance-0000000006
+.ent-search-actastic-users_v7                                                                                                   0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-users_v7                                                                                                   0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-users_v7                                                                                                   0     r      STARTED        2     0 instance-0000000008
+.ent-search-actastic-workplace_search_accounts_v16                                                                              0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-workplace_search_accounts_v16                                                                              0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-workplace_search_accounts_v16                                                                              0     r      STARTED        2     0 instance-0000000008
+.ent-search-actastic-app_search_api_tokens_v3                                                                                   0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-app_search_api_tokens_v3                                                                                   0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-app_search_api_tokens_v3                                                                                   0     r      STARTED        2     0 instance-0000000008
+.ds-cdm_scuba_m365_license_trending-2025.10.03-000009                                                                           0     p      STARTED       23     0 instance-0000000006
+.ds-cdm_scuba_m365_license_trending-2025.10.03-000009                                                                           0     r      STARTED       23     0 instance-0000000008
+.ds-cdm_scuba_m365_license_trending-2025.11.22-000011                                                                           0     p      STARTED       23     0 instance-0000000006
+.ds-cdm_scuba_m365_license_trending-2025.11.22-000011                                                                           0     r      STARTED       23     0 instance-0000000007
+.ds-cdm_scuba_m365_license_trending-2026.03.31-000016                                                                           0     p      STARTED       20     0 instance-0000000007
+.ds-cdm_scuba_m365_license_trending-2026.03.31-000016                                                                           0     r      STARTED       20     0 instance-0000000008
+.ds-cdm_scuba_m365_license_trending-2026.01.21-000015                                                                           0     p      STARTED       20     0 instance-0000000006
+.ds-cdm_scuba_m365_license_trending-2026.01.21-000015                                                                           0     r      STARTED       20     0 instance-0000000007
+.ds-ilm-history-7-2026.03.23-000003                                                                                             0     p      STARTED        4     0 instance-0000000006
+.ds-ilm-history-7-2026.03.23-000003                                                                                             0     r      STARTED        4     0 instance-0000000007
+.ds-cdm_cyhy_vuln_trending-2026.05.01-000018                                                                                    0     p      STARTED        1     0 instance-0000000008
+cdm_scuba_cyberscope_tenant                                                                                                     0     p      STARTED        1     0 instance-0000000006
+cdm_scuba_cyberscope_tenant                                                                                                     0     r      STARTED        1     0 instance-0000000007
+.ds-cdm_cyhy_vuln_trending-2026.05.01-000018                                                                                    0     r      STARTED        1     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.01-000004                                                                                      0     p      STARTED        3     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.01-000004                                                                                      0     r      STARTED        3     0 instance-0000000008
+.async-search                                                                                                                   0     p      STARTED        1     0 instance-0000000007
+.async-search                                                                                                                   0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.14                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.11                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.17                                                                                          0     r      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.17                                                                                          0     p      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.19                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.19                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.16                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.16                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.18                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.14                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.11                                                                                          0     r      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.18                                                                                          0     r      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.22                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.24                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.05.02                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.25                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.25                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.20                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.20                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.12                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.30                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.05.01                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.27                                                                                          0     p      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.29                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.23                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.13                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.15                                                                                          0     r      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.15                                                                                          0     p      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.26                                                                                          0     r      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.26                                                                                          0     p      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.22                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.24                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.05.02                                                                                          0     r      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.12                                                                                          0     r      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.30                                                                                          0     r      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.05.01                                                                                          0     r      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.27                                                                                          0     r      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.29                                                                                          0     r      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.23                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.13                                                                                          0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln_trending_2026.04.21                                                                                          0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln_trending_2026.04.28                                                                                          0     p      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.21                                                                                          0     r      STARTED        1     0 instance-0000000007
+cdm_benchmark_vuln_trending_2026.04.28                                                                                          0     r      STARTED        1     0 instance-0000000006
+.ent-search-actastic-workplace_search_organizations_v17                                                                         0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-workplace_search_organizations_v17                                                                         0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-workplace_search_organizations_v17                                                                         0     r      STARTED        1     0 instance-0000000008
+cdm_benchmark_vuln                                                                                                              0     p      STARTED        1     0 instance-0000000006
+cdm_benchmark_vuln                                                                                                              0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-oauth_applications_v2                                                                                      0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-oauth_applications_v2                                                                                      0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-oauth_applications_v2                                                                                      0     r      STARTED        1     0 instance-0000000008
+.ent-search-actastic-togo_migrations_v1                                                                                         0     p      STARTED       37     0 instance-0000000006
+.ent-search-actastic-togo_migrations_v1                                                                                         0     r      STARTED       37     0 instance-0000000007
+.ent-search-actastic-togo_migrations_v1                                                                                         0     r      STARTED       37     0 instance-0000000008
+.ent-search-actastic-app_search_accounts_v12                                                                                    0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-app_search_accounts_v12                                                                                    0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-app_search_accounts_v12                                                                                    0     r      STARTED        1     0 instance-0000000008
+.ent-search-actastic-workplace_search_api_tokens                                                                                0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-workplace_search_api_tokens                                                                                0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-workplace_search_api_tokens                                                                                0     r      STARTED        1     0 instance-0000000008
+.kibana_alerting_cases_8.19.10_001                                                                                              0     p      STARTED        1     0 instance-0000000006
+.kibana_alerting_cases_8.19.10_001                                                                                              0     r      STARTED        1     0 instance-0000000008
+.fleet-enrollment-api-keys-7                                                                                                    0     p      STARTED        1     0 instance-0000000007
+.fleet-enrollment-api-keys-7                                                                                                    0     r      STARTED        1     0 instance-0000000006
+.enrich-cdm_software_directive-1777790718511                                                                                    0     r      STARTED       30     0 instance-0000000007
+.enrich-cdm_software_directive-1777790718511                                                                                    0     r      STARTED       30     0 instance-0000000008
+.enrich-cdm_software_directive-1777790718511                                                                                    0     p      STARTED       30     0 instance-0000000006
+cdm_aim                                                                                                                         0     p      STARTED        1     0 instance-0000000006
+cdm_aim                                                                                                                         0     r      STARTED        1     0 instance-0000000008
+.ds-.kibana-event-log-ds-2026.03.16-000002                                                                                      0     p      STARTED        1     0 instance-0000000006
+.ds-.kibana-event-log-ds-2026.03.16-000002                                                                                      0     r      STARTED        1     0 instance-0000000007
+.inference                                                                                                                      0     p      STARTED        1     0 instance-0000000006
+.inference                                                                                                                      0     r      STARTED        1     0 instance-0000000008
+.ent-search-actastic-workplace_search_search_groups_v4                                                                          0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-workplace_search_search_groups_v4                                                                          0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-workplace_search_search_groups_v4                                                                          0     r      STARTED        1     0 instance-0000000008
+.enrich-cdm_config_t0-1773675908025                                                                                             0     p      STARTED       10     0 instance-0000000006
+.enrich-cdm_config_t0-1773675908025                                                                                             0     r      STARTED       10     0 instance-0000000007
+.enrich-cdm_config_t0-1773675908025                                                                                             0     r      STARTED       10     0 instance-0000000008
+.ent-search-actastic-app_search_api_tokens_v3-authentication_token-unique-constraint                                            0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-app_search_api_tokens_v3-authentication_token-unique-constraint                                            0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-app_search_api_tokens_v3-authentication_token-unique-constraint                                            0     r      STARTED        2     0 instance-0000000008
+.ent-search-actastic-users_v7-email-unique-constraint                                                                           0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-users_v7-email-unique-constraint                                                                           0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-users_v7-email-unique-constraint                                                                           0     r      STARTED        2     0 instance-0000000008
+.ent-search-actastic-users_v7-auth_source-elasticsearch_username-unique-constraint                                              0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-users_v7-auth_source-elasticsearch_username-unique-constraint                                              0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-users_v7-auth_source-elasticsearch_username-unique-constraint                                              0     r      STARTED        2     0 instance-0000000008
+.ent-search-actastic-workplace_search_accounts_v16-user_oid-unique-constraint                                                   0     p      STARTED        2     0 instance-0000000006
+.ent-search-actastic-workplace_search_accounts_v16-user_oid-unique-constraint                                                   0     r      STARTED        2     0 instance-0000000007
+.ent-search-actastic-workplace_search_accounts_v16-user_oid-unique-constraint                                                   0     r      STARTED        2     0 instance-0000000008
+.ent-search-actastic-oauth_applications_v2-uid-unique-constraint                                                                0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-oauth_applications_v2-uid-unique-constraint                                                                0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-oauth_applications_v2-uid-unique-constraint                                                                0     r      STARTED        1     0 instance-0000000008
+.ent-search-actastic-workplace_search_search_groups_v4-name-unique-constraint                                                   0     p      STARTED        1     0 instance-0000000006
+.ent-search-actastic-workplace_search_search_groups_v4-name-unique-constraint                                                   0     r      STARTED        1     0 instance-0000000007
+.ent-search-actastic-workplace_search_search_groups_v4-name-unique-constraint                                                   0     r      STARTED        1     0 instance-0000000008
+.ent-search-esqueues-me_worker_v1                                                                                               0     r      STARTED        1     0 instance-0000000008
+.ent-search-esqueues-me_worker_v1                                                                                               0     p      STARTED        1     0 instance-0000000007
+.secrets-inference                                                                                                              0     p      STARTED        1     0 instance-0000000006
+.secrets-inference                                                                                                              0     r      STARTED        1     0 instance-0000000008
+.ent-search-db-lock-20200304                                                                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-db-lock-20200304                                                                                                    0     r      STARTED        0     0 instance-0000000008
+.slo-observability.summary-v3.5                                                                                                 0     p      STARTED        0     0 instance-0000000006
+.kibana_locks-000001                                                                                                            0     p      STARTED        0     0 instance-0000000007
+.kibana_locks-000001                                                                                                            0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-engines_v26-loco_moco_account_id-slug-unique-constraint                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-engines_v26-loco_moco_account_id-slug-unique-constraint                                                    0     r      STARTED        0     0 instance-0000000008
+.apm-custom-link                                                                                                                0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-observability.metrics.alerts-default-000001                                                                    0     p      STARTED        0     0 instance-0000000007
+cdm_scuba_gws_result                                                                                                            0     p      STARTED        0     0 instance-0000000006
+cdm_scuba_gws_result                                                                                                            0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_invitations_v3                                                                                  0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_invitations_v3                                                                                  0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_configurations_v2                                                                                 0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_configurations_v2                                                                                 0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_asm_nmi_trending-2026.04.15-000022                                                                                      0     p      STARTED        0     0 instance-0000000006
+cdm_vdp                                                                                                                         0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_pre_content_sources_v3-context-workplace_search_account_id-service_type-unique-constraint 0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_pre_content_sources_v3-context-workplace_search_account_id-service_type-unique-constraint 0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_document_position_queries_v4                                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_document_position_queries_v4                                                                    0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler_robots_txts_v3                                                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler_robots_txts_v3                                                                                     0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-reindex_jobs_v3                                                                                            0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-reindex_jobs_v3                                                                                            0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_content_metadata                                                                                  0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_content_metadata                                                                                  0     r      STARTED        0     0 instance-0000000008
+.ds-logs-enterprise_search.audit-default-2026.04.08-000002                                                                      0     p      STARTED        0     0 instance-0000000006
+.ds-logs-enterprise_search.audit-default-2026.04.08-000002                                                                      0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-workplace_search_pre_content_sources_v3                                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_pre_content_sources_v3                                                                    0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_crawler_content_metadata-content_hash-engine_oid-unique-constraint                              0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_crawler_content_metadata-content_hash-engine_oid-unique-constraint                              0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler_domains_v6-engine_oid-name-unique-constraint                                                       0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler_domains_v6-engine_oid-name-unique-constraint                                                       0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-workplace_search_invitations_v3                                                                            0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_invitations_v3                                                                            0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-oauth_access_grants_v2                                                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-oauth_access_grants_v2                                                                                     0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-search_indices_v1                                                                                          0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-search_indices_v1                                                                                          0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-streams.alerts-default-000001                                                                                  0     p      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler_domains_v6                                                                                         0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler_domains_v6                                                                                         0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_scuba_gws_result_trending-2025.12.15-000002                                                                             0     p      STARTED        0     0 instance-0000000006
+.ent-search-esqueues-me_queue_v1_failed                                                                                         0     p      STARTED        0     0 instance-0000000008
+.ds-cdm_scuba_gws_result_trending-2025.09.03-000001                                                                             0     p      STARTED        0     0 instance-0000000007
+.internal.alerts-security.alerts-default-000001                                                                                 0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-connectors_jobs_v5                                                                                         0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-connectors_jobs_v5                                                                                         0     r      STARTED        0     0 instance-0000000008
+.ds-.kibana-event-log-ds-2026.04.15-000005                                                                                      0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-telemetry_status_v3                                                                                        0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-telemetry_status_v3                                                                                        0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_asm_nmi_trending-2026.02.22-000019                                                                                      0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-stack.alerts-default-000001                                                                                    0     p      STARTED        0     0 instance-0000000007
+.internal.alerts-stack.alerts-default-000001                                                                                    0     r      STARTED        0     0 instance-0000000008
+cdm_csm_trending-6-0000001                                                                                                      0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_process_crawls                                                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_process_crawls                                                                                    0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-observability.apm.alerts-default-000001                                                                        0     p      STARTED        0     0 instance-0000000007
+.internal.alerts-observability.apm.alerts-default-000001                                                                        0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_robots_txts                                                                                       0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_robots_txts                                                                                       0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_vdp_trending-2025.06.25-000001                                                                                          0     p      STARTED        0     0 instance-0000000007
+.ds-cdm_vdp_trending-2025.06.25-000001                                                                                          0     r      STARTED        0     0 instance-0000000008
+.apm-source-map                                                                                                                 0     p      STARTED        0     0 instance-0000000007
+.apm-source-map                                                                                                                 0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-workplace_search_content_sources_v23                                                                       0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_content_sources_v23                                                                       0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-search_relevance_suggestion_update_process_v1                                                              0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-search_relevance_suggestion_update_process_v1                                                              0     r      STARTED        0     0 instance-0000000008
+cdm_scuba_gws_result_latest                                                                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_domains-configuration_oid-name-unique-constraint                                                  0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_domains-configuration_oid-name-unique-constraint                                                  0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-transform.health.alerts-default-000001                                                                         0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-transform.health.alerts-default-000001                                                                         0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-secret_keeper_secrets                                                                                      0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-secret_keeper_secrets                                                                                      0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_document_positions_v3                                                                           0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_document_positions_v3                                                                           0     r      STARTED        0     0 instance-0000000008
+.kibana-siem-rule-migrations-integrations                                                                                       0     p      STARTED        0     0 instance-0000000006
+.slo-observability.sli-v3.5                                                                                                     0     p      STARTED        0     0 instance-0000000007
+.slo-observability.sli-v3.5                                                                                                     0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-workplace_search_role_mappings_v8                                                                          0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_role_mappings_v8                                                                          0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_role_mapping_engines_v4                                                                         0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_role_mapping_engines_v4                                                                         0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-oauth_access_tokens_v2                                                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-oauth_access_tokens_v2                                                                                     0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-default.alerts-default-000001                                                                                  0     p      STARTED        0     0 instance-0000000008
+.ent-search-esqueues-me_queue_v1_engine_destroyer                                                                               0     p      STARTED        0     0 instance-0000000006
+.apm-agent-configuration                                                                                                        0     p      STARTED        0     0 instance-0000000007
+.apm-agent-configuration                                                                                                        0     r      STARTED        0     0 instance-0000000008
+.slo-observability.summary-v3.5.temp                                                                                            0     p      STARTED        0     0 instance-0000000006
+.slo-observability.summary-v3.5.temp                                                                                            0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-observability.logs.alerts-default-000001                                                                       0     p      STARTED        0     0 instance-0000000007
+.internal.alerts-observability.logs.alerts-default-000001                                                                       0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_content_url_metadata                                                                              0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_content_url_metadata                                                                              0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-oauth_access_tokens_v2-refresh_token-unique-constraint                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-oauth_access_tokens_v2-refresh_token-unique-constraint                                                     0     r      STARTED        0     0 instance-0000000008
+cdm_system_boundary_trending-6-0000001                                                                                          0     p      STARTED        0     0 instance-0000000006
+cdm_system_boundary_trending-6-0000001                                                                                          0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_content_metadata-configuration_oid-content_hash-unique-constraint                                 0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_content_metadata-configuration_oid-content_hash-unique-constraint                                 0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_role_mappings_v5                                                                                0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_role_mappings_v5                                                                                0     r      STARTED        0     0 instance-0000000008
+.ent-search-esqueues-me_queue_v1_mailer                                                                                         0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-ml.anomaly-detection-health.alerts-default-000001                                                              0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-observability.threshold.alerts-default-000001                                                                  0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-oauth_access_tokens_v2-token-unique-constraint                                                             0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-oauth_access_tokens_v2-token-unique-constraint                                                             0     r      STARTED        0     0 instance-0000000008
+cdm_vuln_remediated                                                                                                             0     p      STARTED        0     0 instance-0000000007
+.ds-cdm_scuba_m365_license_trending-2026.04.30-000017                                                                           0     p      STARTED        0     0 instance-0000000007
+.ent-search-esqueues-me_queue_v1_process_crawl                                                                                  0     p      STARTED        0     0 instance-0000000007
+.ent-search-esqueues-me_queue_v1_process_crawl                                                                                  0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-observability.slo.alerts-default-000001                                                                        0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-observability.slo.alerts-default-000001                                                                        0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_domains                                                                                           0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_domains                                                                                           0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_scuba_m365_result_trending-2026.04.30-000017                                                                            0     p      STARTED        0     0 instance-0000000006
+.ds-logs-enterprise_search.api-default-2026.03.16-000002                                                                        0     p      STARTED        0     0 instance-0000000007
+.ds-logs-enterprise_search.api-default-2026.03.16-000002                                                                        0     r      STARTED        0     0 instance-0000000008
+.ent-search-esqueues-me_queue_v1_process_crawl2                                                                                 0     p      STARTED        0     0 instance-0000000006
+.ent-search-esqueues-me_queue_v1_process_crawl2                                                                                 0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-synonyms                                                                                                   0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-synonyms                                                                                                   0     r      STARTED        0     0 instance-0000000008
+cdm_scuba_gws_common_control_alert_rule                                                                                         0     p      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler_process_crawls                                                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler_process_crawls                                                                                     0     r      STARTED        0     0 instance-0000000008
+cdm_scuba_gws_common_control_alert_rule_latest                                                                                  0     p      STARTED        0     0 instance-0000000007
+cdm_scuba_gws_common_control_alert_rule_latest                                                                                  0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-ml.anomaly-detection.alerts-default-000001                                                                     0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-ml.anomaly-detection.alerts-default-000001                                                                     0     p      STARTED        0     0 instance-0000000008
+.ent-search-actastic-search_relevance_suggestions-document_position_id-unique-constraint                                        0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-search_relevance_suggestions-document_position_id-unique-constraint                                        0     r      STARTED        0     0 instance-0000000008
+.kibana-siem-rule-migrations-prebuiltrules                                                                                      0     p      STARTED        0     0 instance-0000000006
+.kibana-siem-rule-migrations-prebuiltrules                                                                                      0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-search_relevance_suggestions                                                                               0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-search_relevance_suggestions                                                                               0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_configurations_v2-index_name-unique-constraint                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_configurations_v2-index_name-unique-constraint                                                    0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-dataset.quality.alerts-default-000001                                                                          0     p      STARTED        0     0 instance-0000000006
+cdm_scan_trending-6-0000001                                                                                                     0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_crawl_requests_v2                                                                                 0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_crawl_requests_v2                                                                                 0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-observability.uptime.alerts-default-000001                                                                     0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-observability.uptime.alerts-default-000001                                                                     0     p      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_api_token_engines                                                                               0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_api_token_engines                                                                               0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-security.attack.discovery.alerts-default-000001                                                                0     p      STARTED        0     0 instance-0000000006
+.internal.alerts-security.attack.discovery.alerts-default-000001                                                                0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.04.30-000017                                                         0     p      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_crawler_content_metadata                                                                        0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_crawler_content_metadata                                                                        0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-engines_v26                                                                                                0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-engines_v26                                                                                                0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-workplace_search_content_source_user_identities_v4                                                         0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-workplace_search_content_source_user_identities_v4                                                         0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler_crawl_requests_v7                                                                                  0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler_crawl_requests_v7                                                                                  0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_extraction_rules                                                                                  0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler2_extraction_rules                                                                                  0     r      STARTED        0     0 instance-0000000008
+cdm_system_boundary_fisma_1163_rollup                                                                                           0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_crawler_content_url_metadata                                                                    0     p      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_crawler_content_url_metadata                                                                    0     r      STARTED        0     0 instance-0000000008
+.ds-cdm_scuba_gws_common_control_alert_rule_trending-2025.12.15-000001                                                          0     p      STARTED        0     0 instance-0000000007
+.ent-search-actastic-engines_v26-loco_moco_account_id-slug-unique-constraint                                                    0     r      STARTED        0     0 instance-0000000007
+.apm-custom-link                                                                                                                0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-observability.metrics.alerts-default-000001                                                                    0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-app_search_invitations_v3                                                                                  0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_configurations_v2                                                                                 0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_asm_nmi_trending-2026.04.15-000022                                                                                      0     r      STARTED        0     0 instance-0000000007
+cdm_vdp                                                                                                                         0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-workplace_search_pre_content_sources_v3-context-workplace_search_account_id-service_type-unique-constraint 0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_document_position_queries_v4                                                                    0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler_robots_txts_v3                                                                                     0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-reindex_jobs_v3                                                                                            0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_content_metadata                                                                                  0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-workplace_search_pre_content_sources_v3                                                                    0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_crawler_content_metadata-content_hash-engine_oid-unique-constraint                              0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler_domains_v6-engine_oid-name-unique-constraint                                                       0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-workplace_search_invitations_v3                                                                            0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-oauth_access_grants_v2                                                                                     0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-search_indices_v1                                                                                          0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-streams.alerts-default-000001                                                                                  0     r      STARTED        0     0 instance-0000000006
+.slo-observability.summary-v3.5                                                                                                 0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler_domains_v6                                                                                         0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_scuba_gws_result_trending-2025.12.15-000002                                                                             0     r      STARTED        0     0 instance-0000000008
+.ent-search-esqueues-me_queue_v1_failed                                                                                         0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_scuba_gws_result_trending-2025.09.03-000001                                                                             0     r      STARTED        0     0 instance-0000000006
+.internal.alerts-security.alerts-default-000001                                                                                 0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-connectors_jobs_v5                                                                                         0     r      STARTED        0     0 instance-0000000007
+.ds-.kibana-event-log-ds-2026.04.15-000005                                                                                      0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-telemetry_status_v3                                                                                        0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_asm_nmi_trending-2026.02.22-000019                                                                                      0     r      STARTED        0     0 instance-0000000008
+cdm_csm_trending-6-0000001                                                                                                      0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_process_crawls                                                                                    0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_robots_txts                                                                                       0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-workplace_search_content_sources_v23                                                                       0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-search_relevance_suggestion_update_process_v1                                                              0     r      STARTED        0     0 instance-0000000007
+cdm_scuba_gws_result_latest                                                                                                     0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_domains-configuration_oid-name-unique-constraint                                                  0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-secret_keeper_secrets                                                                                      0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_document_positions_v3                                                                           0     r      STARTED        0     0 instance-0000000007
+.kibana-siem-rule-migrations-integrations                                                                                       0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-workplace_search_role_mappings_v8                                                                          0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_role_mapping_engines_v4                                                                         0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-oauth_access_tokens_v2                                                                                     0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-default.alerts-default-000001                                                                                  0     r      STARTED        0     0 instance-0000000007
+.ent-search-esqueues-me_queue_v1_engine_destroyer                                                                               0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_content_url_metadata                                                                              0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-oauth_access_tokens_v2-refresh_token-unique-constraint                                                     0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_content_metadata-configuration_oid-content_hash-unique-constraint                                 0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_role_mappings_v5                                                                                0     r      STARTED        0     0 instance-0000000007
+.ent-search-esqueues-me_queue_v1_mailer                                                                                         0     r      STARTED        0     0 instance-0000000008
+.internal.alerts-ml.anomaly-detection-health.alerts-default-000001                                                              0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-observability.threshold.alerts-default-000001                                                                  0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-oauth_access_tokens_v2-token-unique-constraint                                                             0     r      STARTED        0     0 instance-0000000007
+cdm_vuln_remediated                                                                                                             0     r      STARTED        0     0 instance-0000000006
+.ds-cdm_scuba_m365_license_trending-2026.04.30-000017                                                                           0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_domains                                                                                           0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_scuba_m365_result_trending-2026.04.30-000017                                                                            0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-synonyms                                                                                                   0     r      STARTED        0     0 instance-0000000007
+cdm_scuba_gws_common_control_alert_rule                                                                                         0     r      STARTED        0     0 instance-0000000006
+.ent-search-actastic-crawler_process_crawls                                                                                     0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-search_relevance_suggestions-document_position_id-unique-constraint                                        0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-search_relevance_suggestions                                                                               0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_configurations_v2-index_name-unique-constraint                                                    0     r      STARTED        0     0 instance-0000000007
+.internal.alerts-dataset.quality.alerts-default-000001                                                                          0     r      STARTED        0     0 instance-0000000008
+cdm_scan_trending-6-0000001                                                                                                     0     r      STARTED        0     0 instance-0000000008
+.ent-search-actastic-crawler2_crawl_requests_v2                                                                                 0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_api_token_engines                                                                               0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_scuba_m365_conditional_access_policy_trending-2026.04.30-000017                                                         0     r      STARTED        0     0 instance-0000000006
+.ent-search-actastic-app_search_crawler_content_metadata                                                                        0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-engines_v26                                                                                                0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-workplace_search_content_source_user_identities_v4                                                         0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler_crawl_requests_v7                                                                                  0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-crawler2_extraction_rules                                                                                  0     r      STARTED        0     0 instance-0000000007
+cdm_system_boundary_fisma_1163_rollup                                                                                           0     r      STARTED        0     0 instance-0000000007
+.ent-search-actastic-app_search_crawler_content_url_metadata                                                                    0     r      STARTED        0     0 instance-0000000007
+.ds-cdm_scuba_gws_common_control_alert_rule_trending-2025.12.15-000001                                                          0     r      STARTED        0     0 instance-0000000006
+.elastic-connectors-v1                                                                                                          0     p      STARTED        0     0 instance-0000000006
+.elastic-connectors-sync-jobs-v1                                                                                                0     p      STARTED        0     0 instance-0000000007
+.elastic-connectors-sync-jobs-v1                                                                                                0     r      STARTED        0     0 instance-0000000008
+.elastic-connectors-v1                                                                                                          0     r      STARTED        0     0 instance-0000000007
+
+# 7: GET /_cat/indices?v&h=health,status,index,pri,rep,docs.count,docs.deleted,store.size,pri.store.size,creation.date.string&s=store.size:desc&bytes=gb 200 OK
+health status index                                                                   pri rep docs.count docs.deleted store.size pri.store.size creation.date.string
+green  open   cdm_swam_trending-6-0000001                                               1   1   69856111            0         81             40 2026-04-10T21:04:31.500Z
+green  open   cdm_swam_trending-6-000003                                                1   1   53569835            0         80             40 2026-04-26T01:28:17.448Z
+green  open   cdm_swam_trending-6-000002                                                1   1   61305752            0         80             40 2026-04-19T01:18:17.438Z
+green  open   cdm_vuln_trending-6-0000001                                               1   1   20512073            0         73             36 2026-04-10T21:04:30.933Z
+green  open   cdm_swam                                                                  1   1    7166751     12271355         32             14 2026-03-13T13:46:07.267Z
+green  open   cdm_swam_trending-6-000004                                                1   1    6977007            0         11              5 2026-05-03T00:18:17.444Z
+green  open   cdm_device_scan_trending-6-0000001                                        1   1    5143071            0          4              2 2026-04-10T21:04:31.117Z
+green  open   cdm_vuln                                                                  1   1     549804       308578          3              1 2026-03-17T14:17:41.363Z
+green  open   cdm_hwam_trending-6-0000001                                               1   1    1482236            0          2              1 2026-04-10T21:04:31.298Z
+green  open   cdm_cve_dictionary                                                        1   1     347756       119756          2              1 2026-04-07T19:14:38.677Z
+green  open   cdm_errors_host_interface                                                 1   1    1727172       773183          1              0 2026-03-13T15:30:10.211Z
+green  open   cdm_software_dictionary                                                   1   1    1680400       978886          0              0 2026-04-07T19:35:22.161Z
+green  open   cdm_cpe_dictionary                                                        1   1    1649378       127000          0              0 2026-04-07T19:01:19.076Z
+green  open   cdm_errors_system_boundary                                                1   1    1501366      1064032          0              0 2026-03-13T13:46:07.221Z
+green  open   cdm_threat                                                                1   1     102799            0          0              0 2026-04-07T19:31:55.407Z
+green  open   cdm_stig_dictionary                                                       1   1      84892        24892          0              0 2026-04-07T19:12:32.912Z
+green  open   cdm_device_scan                                                           1   1     230861            0          0              0 2026-05-03T07:20:09.574Z
+green  open   cdm_errors_device_scan                                                    1   1     454180        61775          0              0 2026-03-13T15:30:10.213Z
+green  open   cdm_hwam                                                                  1   1      73593         4323          0              0 2026-03-09T16:21:46.917Z
+green  open   cdm_errors_swam                                                           1   1      53423         2210          0              0 2026-03-19T00:06:10.558Z
+green  open   cdm_host_interface                                                        1   1     102242            0          0              0 2026-05-03T07:20:09.601Z
+green  open   cdm_errors_vuln                                                           1   1       8691        11672          0              0 2026-03-20T18:51:55.658Z
+green  open   cdm_errors_hwam                                                           1   1        668          144          0              0 2026-03-14T07:08:42.156Z
+green  open   data_dictionary                                                           1   1       3858            0          0              0 2026-03-16T15:39:53.363Z
+green  open   .ds-metrics-fleet_server.agent_status-default-2026.03.09-000001           1   1      43230            0          0              0 2026-03-09T15:49:38.137Z
+green  open   .ds-metrics-fleet_server.agent_versions-default-2026.03.09-000001         1   1      43230            0          0              0 2026-03-09T15:49:38.389Z
+green  open   .ds-metrics-fleet_server.agent_status-default-2026.04.08-000002           1   1      35764            0          0              0 2026-04-08T15:57:03.664Z
+green  open   cdm_kev_dictionary                                                        1   1       1587            0          0              0 2026-05-03T07:30:18.991Z
+green  open   .ds-metrics-fleet_server.agent_versions-default-2026.04.08-000002         1   1      35764            0          0              0 2026-04-08T15:57:03.751Z
+green  open   cdm_cyhy_host_scans                                                       1   1       2948           26          0              0 2026-04-10T21:07:47.220Z
+green  open   .ds-cdm_cyhy_domain_trending-2026.03.16-000017                            1   1       1552            0          0              0 2026-03-16T10:14:42.685Z
+green  open   .ds-cdm_cyhy_domain_trending-2026.01.15-000013                            1   1       1310            0          0              0 2026-01-15T10:09:04.612Z
+green  open   .ds-cdm_cyhy_domain_trending-2026.02.14-000014                            1   1       1310            0          0              0 2026-02-14T10:09:18.174Z
+green  open   .ds-cdm_cyhy_host_scans_trending-2026.03.16-000014                        1   1       1368            0          0              0 2026-03-16T10:14:42.398Z
+green  open   .ds-cdm_cyhy_domain_trending-2025.12.16-000011                            1   1       1048            0          0              0 2025-12-16T10:03:28.612Z
+green  open   cdm_errors_organization                                                   1   1       1432           54          0              0 2026-03-28T05:53:26.035Z
+green  open   .ds-cdm_cyhy_vuln_trending-2026.01.01-000011                              1   1         36            0          0              0 2026-01-01T17:57:52.849Z
+green  open   .ds-cdm_cyhy_host_scans_trending-2026.02.14-000012                        1   1        814            0          0              0 2026-02-14T10:09:18.330Z
+green  open   .ds-cdm_cyhy_host_scans_trending-2026.01.15-000011                        1   1        254            0          0              0 2026-01-15T10:09:04.604Z
+green  open   .ds-cdm_cyhy_host_scans_trending-2025.12.16-000009                        1   1        233            0          0              0 2025-12-16T10:03:28.630Z
+green  open   .ds-cdm_cyhy_vuln_trending-2026.01.31-000013                              1   1         45            0          0              0 2026-01-31T18:02:51.892Z
+green  open   .ds-cdm_cyhy_host_scans_trending-2026.04.15-000017                        1   1        710            0          0              0 2026-04-15T10:23:53.686Z
+green  open   .cdm_config_history                                                       1   1        656            0          0              0 2026-03-09T16:21:39.085Z
+green  open   .ds-cdm_cyhy_vuln_trending-2026.04.01-000017                              1   1         29            0          0              0 2026-04-01T18:03:53.323Z
+green  open   .ds-cdm_cyhy_domain_trending-2026.04.15-000019                            1   1        524            0          0              0 2026-04-15T10:23:53.691Z
+green  open   .ds-cdm_scuba_m365_result_trending-2025.11.22-000011                      1   1        378            0          0              0 2025-11-22T06:05:37.094Z
+green  open   cdm_directive_dictionary                                                  1   1         30            0          0              0 2026-05-03T06:40:17.029Z
+green  open   cdm_cyhy_vuln                                                             1   1         37           12          0              0 2026-04-10T21:07:47.558Z
+green  open   .ds-cdm_scuba_m365_result_trending-2025.12.15-000013                      1   1        252            0          0              0 2025-12-15T18:19:04.653Z
+green  open   .ds-cdm_scuba_m365_result_trending-2025.09.03-000008                      1   1        252            0          0              0 2025-09-03T17:36:38.730Z
+green  open   cdm_scuba_m365_result                                                     1   1        252            0          0              0 2026-04-10T21:07:49.893Z
+green  open   .ds-cdm_cyhy_vuln_trending-2026.03.02-000015                              1   1         19            0          0              0 2026-03-02T18:03:30.767Z
+green  open   cdm_cyhy_domain                                                           1   1        262            0          0              0 2026-04-10T21:07:46.704Z
+green  open   cdm_organization                                                          1   1          1          566          0              0 2026-03-13T13:46:06.964Z
+green  open   cdm_scuba_m365_result_latest                                              1   1        126            0          0              0 2026-04-10T21:07:50.155Z
+green  open   .ds-cdm_cyhy_domain_ssl_trending-2026.03.16-000015                        1   1        206            0          0              0 2026-03-16T10:14:42.680Z
+green  open   .ds-cdm_scuba_m365_result_trending-2026.01.14-000015                      1   1        126            0          0              0 2026-01-14T18:29:04.519Z
+green  open   .ds-cdm_scuba_m365_result_trending-2026.03.31-000016                      1   1        126            0          0              0 2026-03-31T06:05:07.852Z
+green  open   .ds-cdm_scuba_m365_result_trending-2025.10.03-000009                      1   1        126            0          0              0 2025-10-03T17:41:07.475Z
+green  open   .cdm_config                                                               1   1         26            6          0              0 2026-03-09T16:20:52.769Z
+green  open   .ds-cdm_cyhy_domain_ssl_trending-2026.01.15-000011                        1   1        167            0          0              0 2026-01-15T10:09:04.621Z
+green  open   .ds-cdm_cyhy_domain_ssl_trending-2025.12.16-000009                        1   1        164            0          0              0 2025-12-16T10:03:28.622Z
+green  open   .ds-cdm_cyhy_domain_ssl_trending-2026.02.14-000012                        1   1        162            0          0              0 2026-02-14T10:09:18.323Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2025.09.03-000008   1   1         74            0          0              0 2025-09-03T17:36:38.316Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2025.12.22-000013   1   1         74            0          0              0 2025-12-22T06:13:28.503Z
+green  open   .ds-cdm_asm_nmi_trending-2025.12.24-000015                                1   1         45            0          0              0 2025-12-24T17:59:49.887Z
+green  open   .ds-cdm_asm_nmi_trending-2026.03.16-000021                                1   1         30            0          0              0 2026-03-16T14:18:45.741Z
+green  open   cdm_scuba_m365_conditional_access_policy                                  1   1         69            0          0              0 2026-04-10T21:07:49.060Z
+green  open   cdm_cyhy_domain_ssl                                                       1   1         38           36          0              0 2026-04-10T21:07:46.952Z
+green  open   .ds-cdm_cyhy_domain_ssl_trending-2026.04.15-000017                        1   1         78            0          0              0 2026-04-15T10:23:53.696Z
+green  open   cdm_scuba_m365_conditional_access_policy_latest                           1   1         39            0          0              0 2026-04-10T21:07:49.327Z
+green  open   .ds-cdm_scuba_m365_license_trending-2025.12.22-000013                     1   1         46            0          0              0 2025-12-22T06:13:28.512Z
+green  open   .ds-cdm_scuba_m365_license_trending-2025.09.03-000008                     1   1         46            0          0              0 2025-09-03T17:36:39.265Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2025.10.03-000009   1   1         37            0          0              0 2025-10-03T17:41:07.466Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2025.11.22-000011   1   1         37            0          0              0 2025-11-22T06:05:37.248Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2026.01.21-000015   1   1         32            0          0              0 2026-01-21T06:19:04.587Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2026.03.31-000016   1   1         32            0          0              0 2026-03-31T06:05:07.967Z
+green  open   .ds-logs-enterprise_search.audit-default-2026.03.09-000001                1   1          9            0          0              0 2026-03-09T15:49:32.051Z
+green  open   cdm_asm_nmi                                                               1   1         15            0          0              0 2026-04-10T21:07:46.522Z
+green  open   .ds-cdm_asm_nmi_trending-2026.01.23-000017                                1   1         15            0          0              0 2026-01-23T18:07:12.773Z
+green  open   cdm_scuba_m365_license                                                    1   1         43            0          0              0 2026-03-09T16:21:42.131Z
+green  open   cdm_scuba_m365_license_latest                                             1   1         26            0          0              0 2026-04-10T21:07:49.609Z
+green  open   .ds-cdm_scuba_m365_license_trending-2025.10.03-000009                     1   1         23            0          0              0 2025-10-03T17:41:07.500Z
+green  open   .ds-cdm_scuba_m365_license_trending-2025.11.22-000011                     1   1         23            0          0              0 2025-11-22T06:05:37.259Z
+green  open   .ds-cdm_scuba_m365_license_trending-2026.03.31-000016                     1   1         20            0          0              0 2026-03-31T06:05:07.972Z
+green  open   .ds-cdm_scuba_m365_license_trending-2026.01.21-000015                     1   1         20            0          0              0 2026-01-21T06:19:04.449Z
+green  open   cdm_scuba_cyberscope_tenant                                               1   1          1            0          0              0 2026-04-11T06:00:29.517Z
+green  open   .ds-cdm_cyhy_vuln_trending-2026.05.01-000018                              1   1          1            0          0              0 2026-05-01T18:08:17.441Z
+green  open   cdm_benchmark_vuln_trending_2026.04.16                                    1   1          1            0          0              0 2026-04-17T00:01:15.029Z
+green  open   cdm_benchmark_vuln_trending_2026.04.17                                    1   1          1            0          0              0 2026-04-18T00:01:14.285Z
+green  open   cdm_benchmark_vuln_trending_2026.04.19                                    1   1          1            0          0              0 2026-04-20T00:01:18.144Z
+green  open   cdm_benchmark_vuln_trending_2026.04.11                                    1   1          1            0          0              0 2026-04-12T00:01:18.594Z
+green  open   cdm_benchmark_vuln_trending_2026.04.18                                    1   1          1            0          0              0 2026-04-19T00:01:18.629Z
+green  open   cdm_benchmark_vuln_trending_2026.04.14                                    1   1          1            0          0              0 2026-04-15T00:01:16.485Z
+green  open   cdm_benchmark_vuln_trending_2026.04.15                                    1   1          1            0          0              0 2026-04-16T00:01:17.874Z
+green  open   cdm_benchmark_vuln_trending_2026.04.20                                    1   1          1            0          0              0 2026-04-21T00:01:16.898Z
+green  open   cdm_benchmark_vuln_trending_2026.04.25                                    1   1          1            0          0              0 2026-04-26T00:01:15.214Z
+green  open   cdm_benchmark_vuln_trending_2026.04.26                                    1   1          1            0          0              0 2026-04-27T00:01:16.874Z
+green  open   cdm_benchmark_vuln_trending_2026.04.12                                    1   1          1            0          0              0 2026-04-13T00:01:17.851Z
+green  open   cdm_benchmark_vuln_trending_2026.04.13                                    1   1          1            0          0              0 2026-04-14T00:01:20.907Z
+green  open   cdm_benchmark_vuln_trending_2026.04.23                                    1   1          1            0          0              0 2026-04-24T00:01:14.872Z
+green  open   cdm_benchmark_vuln_trending_2026.04.27                                    1   1          1            0          0              0 2026-04-28T00:01:16.132Z
+green  open   cdm_benchmark_vuln_trending_2026.04.29                                    1   1          1            0          0              0 2026-04-30T00:01:15.497Z
+green  open   cdm_benchmark_vuln_trending_2026.04.24                                    1   1          1            0          0              0 2026-04-25T00:01:14.224Z
+green  open   cdm_benchmark_vuln_trending_2026.04.22                                    1   1          1            0          0              0 2026-04-23T00:01:12.639Z
+green  open   cdm_benchmark_vuln_trending_2026.05.02                                    1   1          1            0          0              0 2026-05-03T00:01:15.986Z
+green  open   cdm_benchmark_vuln_trending_2026.04.30                                    1   1          1            0          0              0 2026-05-01T00:01:15.545Z
+green  open   cdm_benchmark_vuln_trending_2026.05.01                                    1   1          1            0          0              0 2026-05-02T00:01:14.623Z
+green  open   cdm_benchmark_vuln_trending_2026.04.28                                    1   1          1            0          0              0 2026-04-29T00:01:15.761Z
+green  open   cdm_benchmark_vuln_trending_2026.04.21                                    1   1          1            0          0              0 2026-04-22T00:01:18.177Z
+green  open   cdm_benchmark_vuln                                                        1   1          1            0          0              0 2026-04-11T06:00:32.523Z
+green  open   cdm_aim                                                                   1   1          1            0          0              0 2026-05-03T05:00:48.568Z
+green  open   .internal.alerts-stack.alerts-default-000001                              1   1          0            0          0              0 2026-03-09T15:48:35.532Z
+green  open   .internal.alerts-observability.logs.alerts-default-000001                 1   1          0            0          0              0 2026-03-09T15:48:35.890Z
+green  open   .internal.alerts-security.attack.discovery.alerts-default-000001          1   1          0            0          0              0 2026-03-09T15:48:35.615Z
+green  open   cdm_system_boundary_trending-6-0000001                                    1   1          0            0          0              0 2026-04-10T21:04:31.851Z
+green  open   .internal.alerts-ml.anomaly-detection.alerts-default-000001               1   1          0            0          0              0 2026-03-09T15:48:35.656Z
+green  open   cdm_scuba_gws_result                                                      1   1          0            0          0              0 2026-04-10T21:07:48.565Z
+green  open   .ds-logs-enterprise_search.audit-default-2026.04.08-000002                1   1          0            0          0              0 2026-04-08T15:57:03.737Z
+green  open   .ds-logs-enterprise_search.api-default-2026.03.16-000002                  1   1          0            0          0              0 2026-03-16T15:50:00.562Z
+green  open   .internal.alerts-transform.health.alerts-default-000001                   1   1          0            0          0              0 2026-03-09T15:48:35.505Z
+green  open   .internal.alerts-observability.slo.alerts-default-000001                  1   1          0            0          0              0 2026-03-09T15:48:35.226Z
+green  open   .internal.alerts-observability.apm.alerts-default-000001                  1   1          0            0          0              0 2026-03-09T15:48:35.682Z
+green  open   cdm_scuba_gws_common_control_alert_rule_latest                            1   1          0            0          0              0 2026-04-10T21:07:48.280Z
+green  open   .internal.alerts-observability.uptime.alerts-default-000001               1   1          0            0          0              0 2026-03-09T15:48:35.478Z
+green  open   .ds-cdm_vdp_trending-2025.06.25-000001                                    1   1          0            0          0              0 2025-06-25T14:07:06.846Z
+green  open   .internal.alerts-ml.anomaly-detection-health.alerts-default-000001        1   1          0            0          0              0 2026-03-09T15:48:35.033Z
+green  open   .ds-cdm_asm_nmi_trending-2026.04.15-000022                                1   1          0            0          0              0 2026-04-15T14:23:53.536Z
+green  open   cdm_system_boundary_fisma_1163_rollup                                     1   1          0            0          0              0 2026-04-10T21:07:50.375Z
+green  open   .internal.alerts-dataset.quality.alerts-default-000001                    1   1          0            0          0              0 2026-03-09T15:48:35.437Z
+green  open   .ds-cdm_scuba_m365_result_trending-2026.04.30-000017                      1   1          0            0          0              0 2026-04-30T06:08:17.505Z
+green  open   .ds-cdm_scuba_gws_common_control_alert_rule_trending-2025.12.15-000001    1   1          0            0          0              0 2025-12-15T12:30:14.914Z
+green  open   .internal.alerts-streams.alerts-default-000001                            1   1          0            0          0              0 2026-03-09T15:48:35.124Z
+green  open   cdm_vuln_remediated                                                       1   1          0            0          0              0 2026-03-16T15:45:30.679Z
+green  open   .internal.alerts-observability.threshold.alerts-default-000001            1   1          0            0          0              0 2026-03-09T15:48:35.075Z
+green  open   cdm_scuba_gws_common_control_alert_rule                                   1   1          0            0          0              0 2026-04-10T21:07:47.874Z
+green  open   .internal.alerts-security.alerts-default-000001                           1   1          0            0          0              0 2026-03-09T15:48:35.341Z
+green  open   cdm_vdp                                                                   1   1          0            0          0              0 2026-04-10T21:07:50.649Z
+green  open   .internal.alerts-observability.metrics.alerts-default-000001              1   1          0            0          0              0 2026-03-09T15:48:35.574Z
+green  open   .ds-cdm_scuba_gws_result_trending-2025.09.03-000001                       1   1          0            0          0              0 2025-09-03T15:51:37.758Z
+green  open   cdm_scan_trending-6-0000001                                               1   1          0            0          0              0 2026-04-10T21:04:31.689Z
+green  open   cdm_csm_trending-6-0000001                                                1   1          0            0          0              0 2026-04-10T21:04:30.727Z
+green  open   .ds-cdm_asm_nmi_trending-2026.02.22-000019                                1   1          0            0          0              0 2026-02-22T18:17:03.284Z
+green  open   .internal.alerts-default.alerts-default-000001                            1   1          0            0          0              0 2026-03-09T15:48:35.313Z
+green  open   .ds-cdm_scuba_m365_conditional_access_policy_trending-2026.04.30-000017   1   1          0            0          0              0 2026-04-30T06:08:17.509Z
+green  open   cdm_scuba_gws_result_latest                                               1   1          0            0          0              0 2026-04-10T21:07:48.788Z
+green  open   .ds-cdm_scuba_m365_license_trending-2026.04.30-000017                     1   1          0            0          0              0 2026-04-30T06:08:17.440Z
+green  open   .ds-cdm_scuba_gws_result_trending-2025.12.15-000002                       1   1          0            0          0              0 2025-12-15T18:19:05.086Z
+green  open   .elastic-connectors-sync-jobs-v1                                          1   1          0            0          0              0 2026-03-09T15:48:45.781Z
+green  open   .elastic-connectors-v1                                                    1   1          0            0          0              0 2026-03-09T15:48:45.586Z
