@@ -4,7 +4,7 @@
 
 **Topology:** 10 total nodes — 3 master (`mr`, 1.7 GB heap), 3 hot/remote/search/transform (`hrst`, **14.7 GB heap**, 810 GB disk each), 1 frozen (`f`, 7.2 GB heap, 1 TB disk), 3 ingest (`ir`, 3.7 GB heap). 114 primaries / 233 total shards / 0 unassigned.
 
-This deployment has a notably different topology from the others — smaller hot nodes (14.7 GB heap vs. 29.6 GB elsewhere), only 3 of them, and a dedicated ingest tier. Let me walk through it.
+This deployment uses smaller hot nodes (14.7 GB heap), only 3 of them, and a dedicated ingest tier. The walkthrough follows.
 
 ---
 
@@ -20,22 +20,22 @@ Every single index has either zero documents or a primary store that rounds to 0
 | Every other `cdm_*` and `.ds-cdm_*` | 1 | 0 GB | 0 | empty |
 | `.kibana_*`, `.security*`, `.tasks`, `.transform-*` | 1 | 0 GB | 0 | system-tiny |
 
-**No resharding is warranted on the data side**, because there's no data to reshard. Every CDM index is at `pri=1, rep=1`, which is the right default for 0 GB content. Note that this cluster's smaller hot nodes (14.7 GB heap) would also imply a slightly tighter target shard size when data does arrive — the 40 GB/shard recommendation still holds, but the lower heap means less headroom for shard count, so primary count discipline matters more here than on the bigger deployments.
+**No resharding is warranted on the data side**, because there is no data to reshard. Every CDM index is at `pri=1, rep=1`, which is the right default for 0 GB content. Note that the smaller hot nodes (14.7 GB heap) imply a slightly tighter target shard size when data does arrive — the 40 GB/shard recommendation still holds, but the lower heap means less headroom for shard count, so primary count discipline matters more here.
 
 ## 2. Is the cluster oversharded?
 
-**Yes, more so than the other empty deployments — because the hot nodes are smaller.**
+**Mildly, given the smaller hot nodes.**
 
-- 233 total shards across 3 hot nodes = **~78 shards per hot node**. Against a ceiling of ~294 shards/node (20 shards per GB of 14.7 GB heap), you're at ~26.4% of the safe limit.
+- 233 total shards across 3 hot nodes = **~78 shards per hot node**. Against a ceiling of ~294 shards/node (20 shards per GB of 14.7 GB heap), the cluster is at ~26.4% of the safe limit.
 - 114 primaries holding effectively 0 GB of real data.
 
-That 26% utilization is the highest of the four deployments reviewed in this batch (DOS at 7%, NASA at 10%, OCC TLC at 194% — see that deployment's review for a separate alarming case). The reasons:
+The reasons:
 
-1. **Fewer hot nodes (3 vs 6 elsewhere)** means the same enrich-replicated-everywhere shard pattern hits harder per node.
-2. **Enrich indices** — 4 enrich policies (`cdm_config_t0`, `cdm_software_directive`, `cdm_csm_stig`, `cdm_software_dictionary_eol`, `cdm_vuln_cve`) × 3 hot nodes = ~15 enrich shards. Smaller absolute number, but a larger fraction of the cluster's total.
+1. **Fewer hot nodes (3)** means the same enrich-replicated-everywhere shard pattern hits harder per node.
+2. **Enrich indices** — 4 enrich policies (`cdm_config_t0`, `cdm_software_directive`, `cdm_csm_stig`, `cdm_software_dictionary_eol`, `cdm_vuln_cve`) × 3 hot nodes = ~15 enrich shards.
 3. **Empty CDM and Kibana alerting indices** that are pre-provisioned but never written to.
 
-The cluster is still well within safe limits, but with smaller heap headroom you have less margin to grow before shard count discipline becomes a real concern. If data starts flowing in and ingestion creates additional rolled-over backing indices each day, the trajectory is steeper here than on the larger-heap clusters.
+The cluster is still well within safe limits, but with smaller heap headroom there is less margin to grow before shard count discipline becomes a real concern. If data starts flowing in and ingestion creates additional rolled-over backing indices each day, the trajectory is steeper here than on larger-heap clusters.
 
 ## 3. Empty indices & their sources
 
@@ -43,9 +43,9 @@ This deployment is almost entirely empty — only `cdm_cpe_dictionary` (1.49M do
 
 Categorized:
 
-**Kibana Alerting framework (15 indices)** — the full `.internal.alerts-*-default-000001` family covering security, ML anomaly detection (×2), observability (metrics/logs/uptime/threshold/slo/apm), streams, stack, transform health, dataset quality, attack discovery, default. All created on **2026-03-10**. Auto-created by Kibana, expected to be empty until rules fire. Leave them alone.
+**Kibana Alerting framework (15 indices)** — the full `.internal.alerts-*-default-000001` family covering security, ML anomaly detection (×2), observability (metrics/logs/uptime/threshold/slo/apm), streams, stack, transform health, dataset quality, attack discovery, default. All created on **2026-03-10**. Auto-created by Kibana, expected to be empty until rules fire. They should be left alone.
 
-**Kibana SIEM rule migrations (2 indices)** — `.kibana-siem-rule-migrations-prebuiltrules`, `.kibana-siem-rule-migrations-integrations`. Empty unless you're actively running a SIEM migration.
+**Kibana SIEM rule migrations (2 indices)** — `.kibana-siem-rule-migrations-prebuiltrules`, `.kibana-siem-rule-migrations-integrations`. Empty unless a SIEM migration is actively running.
 
 **APM system indices (3 indices)** — `.apm-source-map`, `.apm-custom-link`, `.apm-agent-configuration`. Empty until APM agents send data.
 
@@ -59,7 +59,7 @@ Categorized:
 
 **Other:** `.kibana_locks-000001`. No `.elastic-connectors*` or `.ent-search-*` indices — good, this cluster skipped Enterprise Search.
 
-**Frozen tier:** The single frozen node (`instance-0000000009`) shows **0 shards, 0 bytes of disk indices**. It reports `disk.used_percent: 91.13%` — that's an ESS reporting artifact (overcommit math), not a real signal. Nothing has aged into frozen yet.
+**Frozen tier:** The single frozen node (`instance-0000000009`) shows **0 shards, 0 bytes of disk indices**. It reports `disk.used_percent: 91.13%` — that is an ESS reporting artifact (overcommit math), not a real signal. Nothing has aged into frozen yet.
 
 ## 4. Indices with zero replicas in the hot tier
 
@@ -69,7 +69,7 @@ Categorized:
 
 ## 5. Other operational insights
 
-This cluster shows the same "provisioned but never ingested" pattern as DOS, but with one architectural twist: there's a dedicated ingest tier (3 `ir` nodes), implying this deployment was *expected* to receive significant pipeline traffic that never materialized.
+This cluster shows the same "provisioned but never ingested" pattern, but with one architectural twist: there's a dedicated ingest tier (3 `ir` nodes), implying this deployment was *expected* to receive significant pipeline traffic that never materialized.
 
 **Multiple provisioning waves visible.** Looking at index creation timestamps, there are at least three cohorts:
 - **2026-03-10**: Kibana alerting framework (`.internal.alerts-*` family).
@@ -80,15 +80,15 @@ The two trending naming generations (`-6-000002` vs `-6-0000001`) suggest an ite
 
 **Dedicated ingest tier with no work.** Three `ir` (ingest+remote_cluster_client) nodes are present. Ingest nodes exist to run ingest pipelines for indexed documents and to act as remote_cluster_client coordinators for cross-cluster search/replication. With zero documents being indexed, the ingest aspect is idle. The `remote_cluster_client` aspect could still be active if this cluster is consuming data from another cluster via CCS or CCR — that would be worth confirming. The ingest nodes show modest load (CPU 0-1%, load_1m 0.09-0.81), so they're not idle-idle but they're not under stress either.
 
-**Master node CPU is very high on one master.** `instance-0000000005` (master-eligible, not elected) shows `load_1m=6.56, load_5m=7.10, load_15m=6.90` — sustained load of ~7 on a 1.7 GB heap node. The elected master (`instance-0000000004`) is quiet at ~0.6, and the third master (`instance-0000000003`) is at ~1.7. This is the same pattern as DOS — one master inexplicably busy on an otherwise idle cluster. Worth diagnosing what's keeping it busy: stuck transforms, enrich rebuild loops, cluster-state churn from empty index housekeeping, or pending tasks from CCR.
+**Master node CPU is very high on one master.** `instance-0000000005` (master-eligible, not elected) shows `load_1m=6.56, load_5m=7.10, load_15m=6.90` — sustained load of ~7 on a 1.7 GB heap node. The elected master (`instance-0000000004`) is quiet at ~0.6, and the third master (`instance-0000000003`) is at ~1.7. One master inexplicably busy on an otherwise idle cluster is worth diagnosing: stuck transforms, enrich rebuild loops, cluster-state churn from empty index housekeeping, or pending tasks from CCR.
 
-**Heap utilization is bimodal.** Hot node heap ranges from 8% (`instance-0000000006`) to 54% (`instance-0000000008`). With nearly identical shard counts (77-78 per node) and effectively no data, this variance reflects which node holds the few populated shards (`cdm_cpe_dictionary`, `data_dictionary`, `.tasks`). On an active cluster you'd want this more uniform; here it's just noise.
+**Heap utilization is bimodal.** Hot node heap ranges from 8% (`instance-0000000006`) to 54% (`instance-0000000008`). With nearly identical shard counts (77-78 per node) and effectively no data, this variance reflects which node holds the few populated shards (`cdm_cpe_dictionary`, `data_dictionary`, `.tasks`). On an active cluster this should be more uniform; here it's just noise.
 
 **RAM utilization is uniformly elevated.** All hot nodes show ~55% RAM. Master nodes are 63-70%. Nothing alarming, but the floor is high enough that significant additional load would push warning territory quickly.
 
-**Frozen tier is unused.** A single frozen node sized at 1 TB sitting idle. If frozen retention is part of the plan for when ingestion eventually starts, leave it. If not, this is candidate for downsizing.
+**Frozen tier is unused.** A single frozen node sized at 1 TB sitting idle. If frozen retention is part of the plan for when ingestion eventually starts, leave it. If not, this is a candidate for downsizing.
 
-**Index naming generations.** The `-6-000002` pattern (six digits, gen 2) for some trending indices and `-6-0000001` (seven digits, gen 1) for others is genuinely inconsistent. Pick one convention via the index template; mixed padding can confuse glob-based tooling.
+**Index naming generations.** The `-6-000002` pattern (six digits, gen 2) for some trending indices and `-6-0000001` (seven digits, gen 1) for others is genuinely inconsistent. One convention should be picked via the index template; mixed padding can confuse glob-based tooling.
 
 ---
 
@@ -96,10 +96,8 @@ The two trending naming generations (`-6-000002` vs `-6-0000001`) suggest an ite
 
 1. **Verify expected state.** Is this cluster supposed to be ingesting? If yes, this is the headline finding — every CDM ingestion path is silent. Six weeks since the most recent provisioning wave (2026-03-17) with no documents arriving suggests broken pipelines.
 2. **If this cluster should be receiving data:** check the upstream Logstash / pipeline configuration pointing at this cluster. Given the past CDM pipeline silent-failure pattern (`Connection reset by peer`), this is the same failure mode at scale. Three dedicated ingest nodes were provisioned to handle this traffic, suggesting the volume was expected to be substantial.
-3. **Investigate why trending indices have a generation 2 (`-6-000002`).** Something rolled them over. Was it intentional template change? An accidental rollover via the API? If unintended, the answer affects how you interpret the empty state.
+3. **Investigate why trending indices have a generation 2 (`-6-000002`).** Something rolled them over. Was it intentional template change? An accidental rollover via the API? If unintended, the answer affects how the empty state should be interpreted.
 4. **Investigate the master node load** on `instance-0000000005`. Sustained 7 load with no real workload is unexpected.
 5. **Investigate the dictionary indices.** `cdm_cve_dictionary`, `cdm_kev_dictionary`, `cdm_software_dictionary`, `cdm_directive_dictionary`, `cdm_threat` should all be populated by their respective seed/sync jobs. All five are empty. These are usually pulled by a separate scheduled job, not by Logstash — worth checking whether those refresh jobs even target this cluster.
-6. **Standardize the trending index naming pattern.** Either use `-6-0000001` (seven digits) or `-6-000001` (six digits) consistently across all CDM trending indices. Mixed conventions invite tooling bugs.
+6. **Standardize the trending index naming pattern.** Either `-6-0000001` (seven digits) or `-6-000001` (six digits) should be used consistently across all CDM trending indices. Mixed conventions invite tooling bugs.
 7. **Consider right-sizing the frozen and ingest tiers** if the deployment is going to remain idle. With no data flowing in, three ingest nodes and a 1 TB frozen node are unused capacity.
-
-Happy to dig deeper into any of these — particularly the silent-ingestion-path diagnosis if this cluster is supposed to be live, or to help reconcile the mixed trending naming generations.
