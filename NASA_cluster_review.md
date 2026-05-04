@@ -4,13 +4,13 @@
 
 **Topology:** 10 total nodes — 3 master (`mr`, 1.7 GB heap), 6 hot/ingest/remote/search/transform (`hirst`, 29.6 GB heap, ~1.5 TB disk each), 1 frozen (`f`, 3.7 GB heap, 600 GB disk). 165 primaries / 354 total shards / 0 unassigned.
 
-This is the only one of the smaller deployments that has actual production data flowing. Let me walk through it.
+This deployment has actual production data flowing for some CDM domains. The walkthrough follows.
 
 ---
 
 ## 1. Oversized shards & resharding recommendations
 
-Using a 40 GB target (10–30 GB read-heavy / 30–50 GB write-heavy), here's the per-primary picture for the indices that carry data:
+Using a 40 GB target (10–30 GB read-heavy / 30–50 GB write-heavy), here is the per-primary picture for the indices that carry data:
 
 | Index | Primaries | Primary store | GB / primary | Verdict |
 |---|---:|---:|---:|---|
@@ -23,20 +23,20 @@ Using a 40 GB target (10–30 GB read-heavy / 30–50 GB write-heavy), here's th
 
 **There are no oversized shards in this cluster.** The largest primary anywhere is `cdm_cve_dictionary` at 1 GB on a single primary — well under the 40 GB target. Most data-bearing indices are dictionaries (CVE, software, CPE, STIG) or trending datastreams with relatively small daily volumes.
 
-**No resharding is warranted.** Single-primary configs are appropriate for the current data volumes. If `cdm_cyhy_domain_trending` continues to grow at its observed rate (the 2026-04-15 backing index is at 27K docs and the 2026-03-16 one is at 79K), you might eventually want to revisit primary count for that datastream — but you're not close to the threshold yet.
+**No resharding is warranted.** Single-primary configs are appropriate for the current data volumes. If `cdm_cyhy_domain_trending` continues to grow at its observed rate (the 2026-04-15 backing index is at 27K docs and the 2026-03-16 one is at 79K), the primary count for that datastream might eventually need revisiting — but the threshold is far off.
 
 ## 2. Is the cluster oversharded?
 
 **Yes, mildly.** The numbers:
 
-- 354 total shards across 6 hot nodes = **~59 shards per hot node**. Against a ceiling of ~592 shards/node (20 shards per GB of 29.6 GB heap), you're at ~10% of the safe limit.
+- 354 total shards across 6 hot nodes = **~59 shards per hot node**. Against a ceiling of ~592 shards/node (20 shards per GB of 29.6 GB heap), the cluster is at ~10% of the safe limit.
 - 165 primaries holding effectively a few GB of real data.
 
 The shard count is dominated by:
 
-1. **Enrich indices replicated to every hot node.** You have 5 enrich policies (`cdm_software_dictionary_eol`, `cdm_software_directive`, `cdm_cdo_temp`, `cdm_config_t0`, `cdm_csm_stig`, `cdm_vuln_cve`) × 6 nodes = ~36 shards just for enrich. That's about 10% of all shards.
+1. **Enrich indices replicated to every hot node.** There are 5 enrich policies (`cdm_software_dictionary_eol`, `cdm_software_directive`, `cdm_cdo_temp`, `cdm_config_t0`, `cdm_csm_stig`, `cdm_vuln_cve`) × 6 nodes = ~36 shards just for enrich. About 10% of all shards.
 2. **A long tail of trending datastream backing indices** that haven't been deleted by ILM yet — see §5 for specifics.
-3. **A growing herd of daily `cdm_benchmark_vuln_trending_YYYY.MM.DD` indices** — these are not datastreams; they're individually-named daily indices, one per day, each at 1 doc with rep=1 = 2 shards each. There are 11 of them in the snapshot (April 22 through May 2), and the pattern suggests a new one is created every day with no consolidation. Over a year that's ~730 shards just for these.
+3. **A growing herd of daily `cdm_benchmark_vuln_trending_YYYY.MM.DD` indices** — these are not datastreams; they are individually-named daily indices, one per day, each at 1 doc with rep=1 = 2 shards each. There are 11 of them in the snapshot (April 22 through May 2), and the pattern suggests a new one is created every day with no consolidation. Over a year that is ~730 shards just for these.
 
 The cluster is nowhere near its shard-count limit, but the trending pattern in particular is wasteful. See §5 for the recommendation.
 
@@ -44,9 +44,9 @@ The cluster is nowhere near its shard-count limit, but the trending pattern in p
 
 There are roughly **40+ empty indices** in the cluster. They break down by origin:
 
-**Kibana Alerting framework (15 indices)** — the full `.internal.alerts-*-default-000001` family, all created on 2026-03-24. Auto-created by Kibana, expected to be empty until rules fire. Leave them alone.
+**Kibana Alerting framework (15 indices)** — the full `.internal.alerts-*-default-000001` family, all created on 2026-03-24. Auto-created by Kibana, expected to be empty until rules fire. They should be left alone.
 
-**Kibana SIEM rule migrations (2 indices)** — `.kibana-siem-rule-migrations-prebuiltrules`, `.kibana-siem-rule-migrations-integrations`. Empty unless you're actively running a SIEM migration.
+**Kibana SIEM rule migrations (2 indices)** — `.kibana-siem-rule-migrations-prebuiltrules`, `.kibana-siem-rule-migrations-integrations`. Empty unless a SIEM migration is actively running.
 
 **APM system indices (3 indices)** — `.apm-source-map`, `.apm-custom-link`, `.apm-agent-configuration`. Empty until APM agents send data.
 
@@ -65,7 +65,7 @@ Of note: `cdm_vuln` and `cdm_vuln_remediated` were created 2026-03-25 and have n
 
 **Other (1):** `.kibana_locks-000001`. No `.elastic-connectors*` or `.ent-search-*` indices — good, this cluster skipped Enterprise Search.
 
-**Frozen tier:** The single frozen node (`instance-0000000012`) shows **0 shards, 0 bytes of disk indices**. It reports `disk.used_percent: 90.04%` — that's an ESS reporting artifact. Nothing has aged into frozen yet.
+**Frozen tier:** The single frozen node (`instance-0000000012`) shows **0 shards, 0 bytes of disk indices**. It reports `disk.used_percent: 90.04%` — that is an ESS reporting artifact. Nothing has aged into frozen yet.
 
 ## 4. Indices with zero replicas in the hot tier
 
@@ -94,17 +94,17 @@ This suggests an initial provisioning followed by a re-deployment / template ref
 
 These look like healthy monthly rollover patterns with steady ingestion. Good.
 
-**SCuBA M365 has a long backing-index tail.** `cdm_scuba_m365_result_trending` has backing indices from 2025-09 through 2026-04, all sized 100-1200 docs. This is a small steady stream — but the tail of monthly indices going back 8 months suggests ILM retention is long or absent. If you're not querying September 2025 data routinely, consider tightening the ILM delete phase.
+**SCuBA M365 has a long backing-index tail.** `cdm_scuba_m365_result_trending` has backing indices from 2025-09 through 2026-04, all sized 100-1200 docs. This is a small steady stream — but the tail of monthly indices going back 8 months suggests ILM retention is long or absent. If September 2025 data isn't routinely queried, the ILM delete phase should be tightened.
 
 **Master node CPU is significant.** `instance-0000000004` (the elected master) shows `load_1m=8.56, load_5m=7.51, load_15m=8.06` — sustained load of 7-9 on a 1.7 GB heap node. `instance-0000000005` (master-eligible, not elected) is similar at ~7.4. `instance-0000000003` is normal at ~1. With the cluster mostly idle from a data perspective, this elevated master load on two of three masters is unexpected. Could be cluster-state churn from the daily `cdm_benchmark_vuln_trending` index creation, frequent enrich rebuilds, or a misbehaving transform.
 
-**Heap utilization is uneven across hot nodes.** Heap percent ranges from 7% (`instance-0000000008`) to 40% (`instance-0000000009`). This isn't problematic — it reflects which nodes hold the larger shards (`cdm_cve_dictionary`, `cdm_software_dictionary`, `cdm_cpe_dictionary`) — but it's worth knowing if you're looking at per-node monitoring graphs.
+**Heap utilization is uneven across hot nodes.** Heap percent ranges from 7% (`instance-0000000008`) to 40% (`instance-0000000009`). This isn't problematic — it reflects which nodes hold the larger shards (`cdm_cve_dictionary`, `cdm_software_dictionary`, `cdm_cpe_dictionary`) — but worth knowing for per-node monitoring graphs.
 
 **ILM history is healthy.** Unlike the empty deployments, this cluster has multiple `.ds-ilm-history-7-*` backing indices reaching `-000004` and `-000005`, indicating ILM is actively rolling things over. Good signal.
 
 **No `partial-*` shards.** Frozen tier remains unused. Either ILM hasn't aged anything into frozen yet (likely — the data is too recent) or the frozen-tier policy isn't yet wired up.
 
-**Index naming.** `cdm_vuln_trending-6-0000001` uses seven-digit zero-padding for the rollover number, matching the SSA convention. Same naming pattern as DOS.
+**Index naming.** `cdm_vuln_trending-6-0000001` uses seven-digit zero-padding for the rollover number, matching the SSA convention.
 
 ---
 
@@ -113,8 +113,6 @@ These look like healthy monthly rollover patterns with steady ingestion. Good.
 1. **Investigate the silent CDM ingestion paths.** Ingestion clearly works for CyHy, SCuBA M365, and dictionaries — but `cdm_vuln`, `cdm_swam_trending`, `cdm_csm_trending`, `cdm_hwam_trending`, `cdm_device_scan_trending`, `cdm_system_boundary_trending`, `cdm_scan_trending`, the SCuBA GWS family, and `cdm_hwam` are all empty. This is a partial ingestion failure that's worth chasing in the Logstash configuration. Check whether these specific pipelines exist, are enabled, and have working credentials.
 2. **Convert `cdm_benchmark_vuln_trending_*` to a datastream.** One index per day with one doc per day is the clearest cluster-state waste in this deployment. A single datastream with monthly rollover would replace 30 indices with 1 backing index.
 3. **Investigate the master node load** on `instance-0000000004` and `instance-0000000005`. Sustained 7-9 load on otherwise idle masters needs a reason. Check transform health, enrich rebuild frequency, and ILM activity.
-4. **Tighten ILM retention on SCuBA M365 trending** if 8 months of small monthly indices isn't operationally needed. The data volume is trivial but you're paying cluster-state cost per backing index.
-5. **No data-loss exposure** — every index has rep=1. No action needed there.
+4. **Tighten ILM retention on SCuBA M365 trending** if 8 months of small monthly indices isn't operationally needed. The data volume is trivial but cluster-state cost is paid per backing index.
+5. **No data-loss exposure** — every index has rep=1.
 6. **No oversized or under-sharded primaries** that warrant resharding right now.
-
-Happy to dig deeper into any of these — particularly the silent-ingestion-path diagnosis, or to help design a datastream replacement for `cdm_benchmark_vuln_trending_*`.
