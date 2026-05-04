@@ -4,13 +4,13 @@
 
 **Topology:** 3 total nodes — 2 combined-role nodes (`himrst`: hot+ingest+master+remote+search+transform, **1.7 GB heap**, 320 GB disk each) + 1 voting-only tiebreaker (`mv`, 224 MB heap). 66 primaries / 132 total shards / 0 unassigned.
 
-**This is a small all-in-one deployment with significant operational pressure.** The cluster is GREEN and functioning, but several metrics indicate it's running close to or beyond recommended limits. Let me walk through it.
+**This is a small all-in-one deployment with significant operational pressure.** The cluster is GREEN and functioning, but several metrics indicate it's running close to or beyond recommended limits. The walkthrough follows.
 
 ---
 
 ## 1. Oversized shards & resharding recommendations
 
-Using a 40 GB target (10–30 GB read-heavy / 30–50 GB write-heavy), here's the per-primary picture:
+Using a 40 GB target (10–30 GB read-heavy / 30–50 GB write-heavy), here is the per-primary picture:
 
 | Index | Primaries | Primary store | GB / primary | Verdict |
 |---|---:|---:|---:|---|
@@ -24,9 +24,9 @@ Using a 40 GB target (10–30 GB read-heavy / 30–50 GB write-heavy), here's th
 | `.ds-.monitoring-kibana-8-mb-*` | 1 | 0 GB | 0 | small monitoring data |
 | Everything else | 1 | 0 GB | 0 | empty |
 
-**The 45 GB shard on `.ds-elastic-cloud-logs-8-2026.04.02-000001` is right at the edge of the write-heavy ceiling.** It's not technically oversized by the 40 GB target rule (write-heavy can go to 50 GB), but combined with the heap pressure on these 1.7 GB nodes (see §5), this single shard is consuming a disproportionate fraction of cluster resources. The fact that the same primary count is used on the new active backing index (`-2026.05.02-000002`) suggests the rollover policy is keyed on time, not size — meaning if traffic increases, the next backing index could exceed 50 GB.
+**The 45 GB shard on `.ds-elastic-cloud-logs-8-2026.04.02-000001` is right at the edge of the write-heavy ceiling.** It's not technically oversized by the 40 GB target rule (write-heavy can go to 50 GB), but combined with the heap pressure on the 1.7 GB nodes (see §5), this single shard is consuming a disproportionate fraction of cluster resources. The fact that the same primary count is used on the new active backing index (`-2026.05.02-000002`) suggests the rollover policy is keyed on time, not size — meaning if traffic increases, the next backing index could exceed 50 GB.
 
-**Recommendation:** Don't reshard the existing index — that would be expensive and the index is already past its active write window. But review the index template / ILM rollover policy for `elastic-cloud-logs-8`. Consider:
+**Recommendation:** Don't reshard the existing index — that would be expensive and the index is already past its active write window. But the index template / ILM rollover policy for `elastic-cloud-logs-8` should be reviewed. Consider:
 - Adding a `max_primary_shard_size` rollover condition (e.g., 30 GB) to keep new backing indices smaller.
 - Verifying the rollover frequency is appropriate — the gap from `2026-04-02` → `2026-05-02` is 30 days, which is a long window for a high-volume log datastream on small nodes.
 
@@ -52,17 +52,17 @@ The shard count breaks down as:
 6. **Legacy `.monitoring-es-7-*` and `.monitoring-kibana-7-*`** — the old Stack Monitoring v7 indices = 4 shards.
 7. **`cdm_cpe_dictionary`** — 2 shards.
 
-Most of these are tiny or empty system indices, but **every single one occupies a shard slot on these undersized nodes**. The cluster could comfortably halve its shard count by deleting empty system indices that aren't strictly needed (see §3) — but the more durable fix is sizing.
+Most of these are tiny or empty system indices, but every single one occupies a shard slot on these undersized nodes. The cluster could comfortably halve its shard count by deleting empty system indices that aren't strictly needed (see §3) — but the more durable fix is sizing.
 
-**The recommended remediation is to scale up the hot nodes.** Doubling heap to 3.4 GB raises the ceiling to ~68 shards/node, which would put you back inside guidance. A 4 GB or 8 GB heap node tier would give meaningful margin.
+**The recommended remediation is to scale up the hot nodes.** Doubling heap to 3.4 GB raises the ceiling to ~68 shards/node, which would put the cluster back inside guidance. A 4 GB or 8 GB heap node tier would give meaningful margin.
 
 ## 3. Empty indices & their sources
 
 There are roughly **30+ empty indices** in the cluster. They break down by origin:
 
-**Kibana Alerting framework (15 indices)** — full `.internal.alerts-*-default-000001` family covering security, ML anomaly detection (×2), observability (metrics/logs/uptime/threshold/slo/apm), streams, stack, transform health, dataset quality, attack discovery, default. Auto-created by Kibana 2026-04-01, expected to be empty until rules fire. Leave them alone.
+**Kibana Alerting framework (15 indices)** — full `.internal.alerts-*-default-000001` family covering security, ML anomaly detection (×2), observability (metrics/logs/uptime/threshold/slo/apm), streams, stack, transform health, dataset quality, attack discovery, default. Auto-created by Kibana 2026-04-01, expected to be empty until rules fire. They should be left alone.
 
-**Kibana SIEM rule migrations (2 indices)** — `.kibana-siem-rule-migrations-prebuiltrules`, `.kibana-siem-rule-migrations-integrations`. Empty unless actively running a SIEM migration.
+**Kibana SIEM rule migrations (2 indices)** — `.kibana-siem-rule-migrations-prebuiltrules`, `.kibana-siem-rule-migrations-integrations`. Empty unless a SIEM migration is actively running.
 
 **APM system indices (3 indices)** — `.apm-source-map`, `.apm-custom-link`, `.apm-agent-configuration`. Empty until APM agents send data.
 
@@ -70,11 +70,11 @@ There are roughly **30+ empty indices** in the cluster. They break down by origi
 
 **Recently-rolled-over backing indices (1 index)** — `.ds-metricbeat-8.19.13-2026.05.02-000002`. Created today, no docs yet — normal.
 
-**Legacy v7 monitoring (2 indices)** — `.monitoring-es-7-2026.04.01`, `.monitoring-kibana-7-2026.04.01`. Single-day captures from the day the cluster was deployed (2026-04-01), then Stack Monitoring presumably switched to the v8 datastream format. These are vestigial. **Candidate for deletion.**
+**Legacy v7 monitoring (2 indices)** — `.monitoring-es-7-2026.04.01`, `.monitoring-kibana-7-2026.04.01`. Single-day captures from the day the cluster was deployed (2026-04-01), then Stack Monitoring presumably switched to the v8 datastream format. These are vestigial. **Candidates for deletion.**
 
 **Other:** `.kibana_locks-000001`. No `.elastic-connectors*` or `.ent-search-*` indices — good, this cluster skipped Enterprise Search.
 
-**No CDM application data.** Unlike the other deployments reviewed, this cluster has *no* CDM application indices at all (no `cdm_vuln`, `cdm_cyhy_*`, `cdm_scuba_*`, etc.). The only `cdm_*` index is `cdm_cpe_dictionary` (the CPE seed dictionary). This is a different kind of deployment than the other CDM-focused clusters — it appears to be primarily a logging/monitoring deployment with `cdm_cpe_dictionary` present perhaps for cross-cluster reference.
+**No CDM application data.** This cluster has *no* CDM application indices at all (no `cdm_vuln`, `cdm_cyhy_*`, `cdm_scuba_*`, etc.). The only `cdm_*` index is `cdm_cpe_dictionary` (the CPE seed dictionary). This appears to be primarily a logging/monitoring deployment with `cdm_cpe_dictionary` present perhaps for cross-cluster reference.
 
 **Frozen tier:** None. No frozen nodes, no `partial-*` shards. Two-node hot cluster only (plus the voting tiebreaker).
 
@@ -102,9 +102,9 @@ This cluster has multiple yellow-flag indicators that combined suggest it's runn
 
 **ILM and SLM are active.** Multiple `.ds-ilm-history-7-*` and `.ds-.slm-history-7-*` backing indices going back to 2026-04-01. ILM is rolling things over and snapshot lifecycle is producing history records — both are healthy signals.
 
-**No master-only nodes.** This deployment uses the combined `himrst` role for the data nodes and a single voting-only tiebreaker. That means master-eligible work shares the JVM with data work, which is fine for small deployments but contributes to the heap pressure noted above. If you scale up, splitting out dedicated master nodes (3 small `m`-only nodes) would reduce the burden on the data nodes' heap.
+**No master-only nodes.** This deployment uses the combined `himrst` role for the data nodes and a single voting-only tiebreaker. That means master-eligible work shares the JVM with data work, which is fine for small deployments but contributes to the heap pressure noted above. If the cluster scales up, splitting out dedicated master nodes (3 small `m`-only nodes) would reduce the burden on the data nodes' heap.
 
-**No CDM ingestion pattern visible.** Unlike the other deployments, this cluster doesn't appear to be running CDM workloads. The data here is `elastic-cloud-logs`, `metricbeat`, and `monitoring` datastreams — i.e., this looks like a **logging/observability cluster** rather than a CDM data cluster. The `cdm_cpe_dictionary` presence might be for some reference lookup, or might be vestigial from a template that includes it.
+**No CDM ingestion pattern visible.** The data here is `elastic-cloud-logs`, `metricbeat`, and `monitoring` datastreams — i.e., this looks like a **logging/observability cluster** rather than a CDM data cluster. The `cdm_cpe_dictionary` presence might be for some reference lookup, or might be vestigial from a template that includes it.
 
 ---
 
@@ -116,5 +116,3 @@ This cluster has multiple yellow-flag indicators that combined suggest it's runn
 4. **Delete the legacy v7 monitoring indices** — `.monitoring-es-7-2026.04.01` and `.monitoring-kibana-7-2026.04.01`. They're single-day vestiges from cluster setup. Tiny win but reduces shard count.
 5. **No data-loss exposure** — every index has rep=1.
 6. **Confirm whether `cdm_cpe_dictionary` is needed here.** If this is purely a logging cluster, the 1.49M-doc dictionary index might be deletable, freeing resources.
-
-Happy to dig deeper into any of these — particularly to help size the right hot-tier upgrade, design the ILM policy update for `elastic-cloud-logs-8`, or diagnose the tiebreaker CPU.
